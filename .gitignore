@@ -1,0 +1,34 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment — contains DB credentials, NEVER commit
+.env
+.env.local
+.env.production
+**/.env
+**/.env.local
+
+# Build output
+dist/
+build/
+.vite/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Uploads
+uploads/

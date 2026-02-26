@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #F9FAFB;
+  --bg-secondary: #F3F4F6;
+  --border: #CBD5E1;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --accent: #64748B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* Hard shadow utility */
+.shadow-hard {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.08);
+}
+.shadow-hard-sm {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.06);
+}
+.shadow-hard-lg {
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.10);
+}
+
+/* Selection */
+::selection {
+  background: #CBD5E1;
+  color: #111827;
+}
+
+/* Badge base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid;
+}
+
+/* Transitions */
+.transition-all { transition: all 0.15s ease; }
