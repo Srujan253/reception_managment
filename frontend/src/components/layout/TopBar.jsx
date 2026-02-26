@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const pageTitles = {
@@ -12,7 +12,7 @@ const pageTitles = {
   '/admin': 'Administration',
 };
 
-export default function TopBar() {
+export default function TopBar({ onMenuClick }) {
   const { user } = useAuth();
   const location = useLocation();
   const title = pageTitles[location.pathname] || 'EventHQ';
@@ -24,33 +24,40 @@ export default function TopBar() {
   }[user?.role] || { bg: 'bg-gray-500 text-white', label: 'USER' };
 
   return (
-    <header className="h-14 border-b border-[#CBD5E1] bg-[#F9FAFB] flex items-center px-6 gap-4 flex-shrink-0">
-      <div className="flex-1">
-        <h1 className="text-[15px] font-semibold text-[#111827]">{title}</h1>
+    <header className="h-14 border-b border-slate-200 bg-white flex items-center px-4 md:px-6 gap-3 md:gap-4 flex-shrink-0">
+      <button 
+        onClick={onMenuClick}
+        className="md:hidden p-2 -ml-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+      >
+        <Menu size={20} />
+      </button>
+      
+      <div className="flex-1 truncate">
+        <h1 className="text-[14px] md:text-[15px] font-semibold text-slate-900 truncate">{title}</h1>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.5} />
+      {/* Search - hidden on mobile */}
+      <div className="relative hidden lg:block">
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" strokeWidth={1.5} />
         <input
           type="text"
           placeholder="Search participants..."
-          className="pl-8 pr-3 py-1.5 text-[12px] border border-[#CBD5E1] bg-[#F3F4F6] rounded-sm w-56 focus:outline-none focus:border-[#64748B] transition-colors"
+          className="pl-8 pr-3 py-1.5 text-[12px] border border-slate-200 bg-slate-50 rounded-lg w-56 focus:outline-none focus:border-slate-400 transition-colors"
         />
       </div>
 
       {/* Notification */}
-      <button className="w-8 h-8 flex items-center justify-center border border-[#CBD5E1] bg-[#F3F4F6] rounded-sm hover:bg-white transition-colors" style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.05)' }}>
-        <Bell size={14} strokeWidth={1.5} className="text-[#6B7280]" />
+      <button className="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+        <Bell size={14} strokeWidth={1.5} className="text-slate-500" />
       </button>
 
       {/* Role badge */}
-      <div className={`px-2.5 py-1 text-[11px] font-bold rounded-sm tracking-widest ${roleBadge.bg}`} style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.15)' }}>
+      <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full tracking-widest ${roleBadge.bg} shadow-sm`}>
         {roleBadge.label}
       </div>
 
       {/* Avatar */}
-      <div className="w-8 h-8 bg-[#111827] rounded-sm flex items-center justify-center text-white text-[12px] font-bold" style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.15)' }}>
+      <div className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
         {user?.name?.charAt(0)?.toUpperCase() || 'U'}
       </div>
     </header>

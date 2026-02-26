@@ -19,7 +19,11 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:3000',
+    'https://rosa-visitors-eagle-logan.trycloudflare.com'
+  ],
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -142,7 +146,7 @@ async function initSchema() {
     for (const s of seeds) {
       const hash = await bcrypt.hash(s.pass, 10);
       await pool.query(
-        `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO UPDATE SET password_hash = $2`,
+        `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO UPDATE SET password_hash = $3`,
         [s.name, s.email, hash, s.role]
       ).catch(() => {});
     }

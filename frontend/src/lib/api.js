@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 15000,
 });
 
@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !err.config.url.includes('/auth/login')) {
       localStorage.removeItem('eventhq_token');
       localStorage.removeItem('eventhq_user');
       window.location.href = '/login';

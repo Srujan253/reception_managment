@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Zap, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -23,6 +23,7 @@ export default function Login() {
       toast.success(`Welcome back, ${res.data.user.name}`);
       navigate('/');
     } catch (err) {
+      console.error('Login error details:', err.response?.data || err.message || err);
       toast.error(err.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
@@ -30,54 +31,90 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm"
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-9 h-9 bg-[#111827] flex items-center justify-center rounded-sm" style={{ boxShadow: '3px 3px 0px 0px rgba(0,0,0,0.2)' }}>
-            <Zap size={18} className="text-white" strokeWidth={1.8} />
-          </div>
-          <div>
-            <div className="font-bold text-[#111827] text-lg leading-none">EventHQ</div>
-            <div className="text-[11px] text-[#9CA3AF]">Enterprise Check-in System</div>
-          </div>
-        </div>
-
-        {/* Card */}
-        <div className="border border-[#CBD5E1] bg-white rounded-sm p-8" style={{ boxShadow: '6px 6px 0px 0px rgba(0,0,0,0.06)' }}>
-          <h2 className="text-[18px] font-semibold text-[#111827] mb-1">Sign in</h2>
-          <p className="text-[13px] text-[#6B7280] mb-6">Access your management console</p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 text-[13px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] focus:bg-white transition-all"
-                placeholder="admin@eventhq.com"
-                required
-              />
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Left Pane - Branding */}
+      <div className="hidden lg:flex w-[45%] bg-slate-900 text-white p-16 flex-col justify-center relative overflow-hidden">
+        <div className="relative z-10 w-full max-w-md mx-auto">
+          <div className="flex items-center gap-3 mb-16">
+            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Zap className="text-white" size={24} fill="currentColor" />
             </div>
             <div>
-              <label className="block text-[12px] font-medium text-[#374151] mb-1.5">Password</label>
+              <div className="font-bold text-white text-2xl leading-none">EventHQ</div>
+              <div className="text-[11px] text-emerald-400 font-semibold tracking-widest uppercase mt-1.5">Scoring Platform</div>
+            </div>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
+            Manage contests with confidence.
+          </h1>
+          <p className="text-slate-300 text-lg mb-12">
+            A complete platform for organising events, managing judges, and tracking contestant scores in real time.
+          </p>
+          
+          <div className="space-y-6">
+            {[
+              'Real-time scoring & rankings',
+              'Multi-judge session management',
+              'Custom scoring templates',
+              'Instant results & reports'
+            ].map((feature, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="text-emerald-500" size={16} />
+                </div>
+                <span className="text-slate-200 text-[15px] font-medium">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="absolute bottom-12 left-0 right-0 text-center z-10">
+          <p className="text-slate-500 text-sm">© {new Date().getFullYear()} EventHQ</p>
+        </div>
+      </div>
+
+      {/* Right Pane - Login Form */}
+      <div className="w-full lg:w-[55%] flex items-center justify-center p-8 bg-slate-50">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo Only */}
+          <div className="lg:hidden flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center shadow-lg">
+              <Zap className="text-white" size={18} fill="currentColor" />
+            </div>
+            <div className="font-bold text-slate-900 text-xl tracking-tight">EventHQ</div>
+          </div>
+
+          <h2 className="text-[28px] md:text-[32px] font-bold text-slate-900 mb-2">Welcome back</h2>
+          <p className="text-slate-500 text-[15px] mb-10">Sign in to your administrator account</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-[13px] font-semibold text-slate-700 mb-2">Email address</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 text-[14px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all shadow-sm"
+                  placeholder="admin@example.com"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[13px] font-semibold text-slate-700 mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2.5 pr-10 text-[13px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] focus:bg-white transition-all"
-                  placeholder="••••••••"
+                  className="w-full pl-4 pr-12 py-3 text-[14px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all shadow-sm"
+                  placeholder="Enter your password"
                   required
                 />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]">
-                  {showPass ? <EyeOff size={13} strokeWidth={1.5} /> : <Eye size={13} strokeWidth={1.5} />}
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                  {showPass ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
                 </button>
               </div>
             </div>
@@ -85,26 +122,35 @@ export default function Login() {
             <motion.button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-2.5 bg-[#111827] text-white text-[13px] font-semibold rounded-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-all"
-              style={{ boxShadow: '3px 3px 0px 0px rgba(0,0,0,0.2)' }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full py-3 mt-4 bg-slate-800 hover:bg-slate-900 text-white text-[15px] font-medium rounded-lg flex items-center justify-center gap-2 disabled:opacity-70 transition-all shadow-sm"
             >
               {loading ? (
-                <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  <LogIn size={14} strokeWidth={2} />
-                  Sign in
-                </>
+                'Sign in'
               )}
             </motion.button>
           </form>
 
+          {/* Attendee Registration Link */}
+          <div className="mt-8 text-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 bg-emerald-500 h-full"></div>
+            <p className="text-[14px] text-slate-600 mb-3 font-medium">Attending an event but don't have a QR code yet?</p>
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+              className="w-full sm:w-auto px-6 py-2.5 text-[14px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-xl border border-emerald-200"
+            >
+              Get Digital Ticket
+            </button>
+          </div>
+
           {/* Demo accounts */}
-          <div className="mt-6 pt-5 border-t border-[#F3F4F6]">
-            <p className="text-[11px] text-[#9CA3AF] mb-2 font-medium uppercase tracking-wide">Demo Accounts</p>
-            <div className="space-y-1">
+          <div className="mt-12 pt-8 border-t border-slate-200">
+            <p className="text-[11px] text-slate-400 mb-4 font-bold uppercase tracking-widest text-center">Demo Accounts</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {[
                 { label: 'Admin', email: 'admin@eventhq.com', pass: 'admin123' },
                 { label: 'Manager', email: 'manager@eventhq.com', pass: 'manager123' },
@@ -113,16 +159,15 @@ export default function Login() {
                 <button
                   key={e}
                   onClick={() => { setEmail(e); setPassword(pass); }}
-                  className="w-full text-left px-2.5 py-1.5 text-[11px] rounded-sm border border-[#F3F4F6] hover:border-[#CBD5E1] hover:bg-[#F9FAFB] transition-all flex justify-between"
+                  className="w-full px-4 py-2.5 text-xs rounded-lg border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-white hover:text-slate-900 transition-all shadow-sm bg-slate-50 flex items-center justify-center"
                 >
-                  <span className="font-medium text-[#374151]">{label}</span>
-                  <span className="text-[#9CA3AF]">{e}</span>
+                  <span className="font-semibold">{label}</span>
                 </button>
               ))}
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

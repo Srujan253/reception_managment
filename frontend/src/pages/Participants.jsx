@@ -62,10 +62,9 @@ function AddParticipantModal({ events, onClose, onAdded }) {
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <motion.div
-        initial={{ scale: 0.93, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-white border border-[#CBD5E1] rounded-sm w-full max-w-md p-6"
-        style={{ boxShadow: '8px 8px 0px 0px rgba(0,0,0,0.08)' }}
+        className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-xl"
         onClick={e => e.stopPropagation()}
       >
         <h3 className="text-[14px] font-semibold text-[#111827] mb-4">Add Participant</h3>
@@ -78,8 +77,8 @@ function AddParticipantModal({ events, onClose, onAdded }) {
           {field('Role', 'role', 'text', ROLES.filter(r => r !== 'all').map(r => <option key={r} value={r}>{r}</option>))}
           {field('Ticket Number', 'ticket_number')}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6] transition-all">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 py-2 text-[12px] bg-[#111827] text-white rounded-sm font-medium disabled:opacity-50" style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.15)' }}>
+            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">Cancel</button>
+            <button type="submit" disabled={loading} className="flex-1 py-2 text-[12px] bg-slate-900 text-white rounded-lg font-medium shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50">
               {loading ? '...' : 'Add Participant'}
             </button>
           </div>
@@ -176,7 +175,7 @@ export default function Participants() {
   return (
     <div className="max-w-7xl mx-auto space-y-4">
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-48">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.5} />
@@ -185,7 +184,7 @@ export default function Participants() {
             placeholder="Search name, email, QR code..."
             value={filters.search}
             onChange={(e) => setFilter('search', e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B]"
+            className="w-full pl-8 pr-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
           />
         </div>
 
@@ -193,7 +192,7 @@ export default function Participants() {
         <select
           value={filters.role}
           onChange={(e) => setFilter('role', e.target.value)}
-          className="px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B]"
+          className="px-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
         >
           {ROLES.map(r => <option key={r} value={r}>{r === 'all' ? 'All Roles' : r}</option>)}
         </select>
@@ -202,7 +201,7 @@ export default function Participants() {
         <select
           value={filters.event_id}
           onChange={(e) => setFilter('event_id', e.target.value)}
-          className="px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] max-w-48"
+          className="px-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all max-w-48 text-slate-700"
         >
           <option value="">All Events</option>
           {events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
@@ -212,38 +211,35 @@ export default function Participants() {
         <select
           value={filters.limit}
           onChange={(e) => setFilter('limit', parseInt(e.target.value))}
-          className="px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B]"
+          className="px-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all text-slate-700"
         >
           {[25, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
         </select>
 
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 justify-between w-full sm:w-auto mt-2 sm:mt-0">
           {isManager && (
             <>
               <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={csvLoading}
-                className="flex items-center gap-1.5 px-3 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] hover:bg-white transition-all font-medium disabled:opacity-50"
-                style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.05)' }}
+                className="flex items-center gap-1.5 px-3 py-2 text-[12px] border border-slate-200 rounded-lg bg-white shadow-sm hover:bg-slate-50 transition-all font-medium disabled:opacity-50 text-slate-700"
               >
-                <Upload size={12} strokeWidth={1.5} /> {csvLoading ? 'Importing...' : 'Import CSV'}
+                <Upload size={14} strokeWidth={1.5} /> {csvLoading ? 'Importing...' : 'Import'}
               </button>
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-3 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] hover:bg-white transition-all font-medium"
-                style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.05)' }}
+                className="flex items-center gap-1.5 px-3 py-2 text-[12px] border border-slate-200 rounded-lg bg-white shadow-sm hover:bg-slate-50 transition-all font-medium text-slate-700"
               >
-                <Download size={12} strokeWidth={1.5} /> Export CSV
+                <Download size={14} strokeWidth={1.5} /> Export
               </button>
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => setShowAdd(true)}
-                className="flex items-center gap-1.5 px-3 py-2 text-[12px] bg-[#111827] text-white rounded-sm font-medium"
-                style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.15)' }}
+                className="flex items-center gap-1.5 px-3 py-2 text-[12px] bg-slate-900 text-white rounded-lg shadow-sm hover:bg-slate-800 transition-all font-medium"
               >
-                <Plus size={12} strokeWidth={2} /> Add
+                <Plus size={14} strokeWidth={2} /> Add
               </motion.button>
             </>
           )}
@@ -251,7 +247,7 @@ export default function Participants() {
       </div>
 
       {/* Table */}
-      <div className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
+      <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
         <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users size={13} strokeWidth={1.5} className="text-[#6B7280]" />

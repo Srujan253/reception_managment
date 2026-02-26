@@ -4,6 +4,21 @@ const { authenticate, requireManager, requireAdmin } = require('../middleware/au
 
 const router = express.Router();
 
+// GET /api/events/public/active — list active/upcoming events for public registration
+router.get('/public/active', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, name, name_ja, description, start_date, end_date, venue 
+      FROM events 
+      WHERE status IN ('upcoming', 'active')
+      ORDER BY start_date ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/events — list all events
 router.get('/', authenticate, async (req, res) => {
   try {

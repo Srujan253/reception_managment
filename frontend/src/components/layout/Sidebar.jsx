@@ -3,9 +3,10 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, QrCode, Users, CalendarDays,
-  MonitorPlay, ShieldCheck, LogOut, Zap
+  MonitorPlay, ShieldCheck, LogOut, Zap, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { AnimatePresence } from 'framer-motion';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -16,13 +17,14 @@ const navItems = [
   { to: '/admin', icon: ShieldCheck, label: 'Admin', adminOnly: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout, isAdmin, isManager } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+    if (onClose) onClose();
   };
 
   const roleBadgeColor = {
@@ -31,18 +33,12 @@ export default function Sidebar() {
     staff: 'bg-gray-100 text-gray-600 border-gray-300',
   }[user?.role] || 'bg-gray-100 text-gray-600 border-gray-300';
 
-  return (
-    <motion.aside
-      initial={{ x: -280 }}
-      animate={{ x: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="w-[220px] flex-shrink-0 border-r border-[#CBD5E1] bg-[#F9FAFB] flex flex-col h-full"
-      style={{ boxShadow: '2px 0 0 0 rgba(0,0,0,0.04)' }}
-    >
+  const sidebarContent = (
+    <div className="w-[240px] flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col h-full shadow-xl md:shadow-none">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[#CBD5E1]">
+      <div className="px-5 py-5 border-b border-slate-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#111827] flex items-center justify-center rounded-sm" style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.2)' }}>
+          <div className="w-7 h-7 bg-slate-900 flex items-center justify-center rounded-lg">
             <Zap size={14} className="text-white" strokeWidth={1.8} />
           </div>
           <div>
@@ -50,6 +46,12 @@ export default function Sidebar() {
             <div className="text-[10px] text-[#9CA3AF] mt-0.5">Enterprise</div>
           </div>
         </div>
+        <button 
+          onClick={onClose}
+          className="md:hidden p-1.5 hover:bg-slate-200 rounded-lg text-slate-500"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Nav */}
@@ -63,11 +65,14 @@ export default function Sidebar() {
               key={to}
               to={to}
               end={end}
+              onClick={() => {
+                if (window.innerWidth < 768) onClose();
+              }}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-sm text-[13px] font-medium transition-all group
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group
                 ${isActive
-                  ? 'bg-[#111827] text-white shadow-hard-sm'
-                  : 'text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]'
+                  ? 'bg-slate-200 text-slate-900'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
                 }`
               }
             >
@@ -83,7 +88,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User info */}
-      <div className="px-3 py-4 border-t border-[#CBD5E1]">
+      <div className="px-3 py-4 border-t border-slate-200">
         <div className="mb-3 px-3">
           <div className="text-[12px] font-medium text-[#111827] truncate">{user?.name}</div>
           <div className="text-[11px] text-[#9CA3AF] truncate">{user?.email}</div>
@@ -93,12 +98,45 @@ export default function Sidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-[#6B7280] hover:text-[#DC2626] hover:bg-red-50 rounded-sm transition-all"
+          className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
         >
           <LogOut size={14} strokeWidth={1.5} />
           <span>Sign out</span>
         </button>
       </div>
-    </motion.aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
+            />
+            <motion.aside
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="fixed inset-y-0 left-0 z-50 md:hidden"
+            >
+              {sidebarContent}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

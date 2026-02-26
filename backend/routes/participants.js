@@ -8,6 +8,24 @@ const { authenticate, requireManager, requireAdmin } = require('../middleware/au
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
+// POST /api/participants/register — public self-registration
+router.post('/register', async (req, res) => {
+  const { event_id, name, email } = req.body;
+  if (!event_id || !name) return res.status(400).json({ error: 'event_id and name required' });
+
+  try {
+    const qr_code = `EVT-${uuidv4().split('-')[0].toUpperCase()}-${Date.now()}`;
+    const result = await pool.query(
+      `INSERT INTO participants (event_id, name, email, role, qr_code)
+       VALUES ($1, $2, $3, 'participant', $4) RETURNING *`,
+      [event_id, name, email || null, qr_code]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/participants — list with pagination, filter
 router.get('/', authenticate, async (req, res) => {
   const { event_id, role, search, page = 1, limit = 50 } = req.query;

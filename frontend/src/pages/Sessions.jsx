@@ -44,11 +44,10 @@ function GuardWarningModal({ show, onClose, onForce, guardInfo }) {
           className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4"
         >
           <motion.div
-            initial={{ scale: 0.92, y: -16 }}
+            initial={{ scale: 0.95, y: -16 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95 }}
-            className="bg-white border border-[#CBD5E1] rounded-sm w-full max-w-sm p-6"
-            style={{ boxShadow: '8px 8px 0px 0px rgba(0,0,0,0.08)' }}
+            className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-xl"
           >
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 bg-amber-50 border border-amber-200 rounded-sm flex items-center justify-center">
@@ -77,8 +76,7 @@ function GuardWarningModal({ show, onClose, onForce, guardInfo }) {
               </button>
               <button
                 onClick={onForce}
-                className="flex-1 py-2 text-[12px] bg-red-600 text-white rounded-sm hover:bg-red-700 transition-all font-medium flex items-center justify-center gap-1.5"
-                style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.2)' }}
+                className="flex-1 py-2 text-[12px] bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <AlertTriangle size={12} /> Force Exit
               </button>
@@ -170,7 +168,7 @@ export default function Sessions() {
       <div className="grid grid-cols-7 gap-5">
         {/* Session list */}
         <div className="col-span-2">
-          <div className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
+          <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
             <div className="px-4 py-3 border-b border-[#F3F4F6]">
               <span className="text-[12px] font-semibold text-[#374151]">Sessions ({sessions.length})</span>
             </div>
@@ -202,14 +200,14 @@ export default function Sessions() {
         {/* Session Detail */}
         <div className="col-span-5 space-y-4">
           {!sessionDetail ? (
-            <div className="border border-[#CBD5E1] bg-white rounded-sm p-12 text-center" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
-              <MonitorPlay size={24} strokeWidth={1} className="mx-auto text-[#CBD5E1] mb-3" />
-              <p className="text-[13px] text-[#9CA3AF]">Select a session to monitor</p>
+            <div className="border border-slate-200 bg-slate-50 rounded-2xl p-12 text-center border-dashed">
+              <MonitorPlay size={24} strokeWidth={1} className="mx-auto text-slate-400 mb-3" />
+              <p className="text-[13px] text-slate-500">Select a session to monitor</p>
             </div>
           ) : (
             <>
               {/* Session info card */}
-              <div className="border border-[#CBD5E1] bg-white rounded-sm p-5" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
+              <div className="border border-slate-200 bg-white rounded-2xl p-5 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-[16px] font-semibold text-[#111827]">{sessionDetail.title}</h2>
@@ -236,7 +234,7 @@ export default function Sessions() {
               </div>
 
               {/* Attendees table */}
-              <div className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
+              <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
                 <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
                   <span className="text-[12px] font-semibold text-[#374151] flex items-center gap-2">
                     <Users size={13} strokeWidth={1.5} /> Live Attendees
@@ -314,11 +312,10 @@ export default function Sessions() {
                               <td className="px-4 py-3">
                                 <button
                                   onClick={() => handleCheckout(attendee.participant_id)}
-                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] rounded-sm border font-medium transition-all
+                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] rounded-lg shadow-sm border font-medium transition-all
                                     ${attendee.guard_active
                                       ? 'border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100'
-                                      : 'border-[#CBD5E1] text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#374151]'}`}
-                                  style={{ boxShadow: '1px 1px 0px 0px rgba(0,0,0,0.06)' }}
+                                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                   <LogOut size={10} strokeWidth={1.5} />
                                   {attendee.guard_active ? 'Guard' : 'Check Out'}

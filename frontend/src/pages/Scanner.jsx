@@ -32,16 +32,15 @@ function FeedbackModal({ result, onClose }) {
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.92, y: -20, opacity: 0 }}
+          initial={{ scale: 0.95, y: -20, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white border border-[#CBD5E1] rounded-sm w-full max-w-sm p-6"
-          style={{ boxShadow: '8px 8px 0px 0px rgba(0,0,0,0.08)' }}
+          className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-xl"
         >
           <div className="flex items-start gap-4">
-            <div className={`w-10 h-10 rounded-sm flex items-center justify-center flex-shrink-0 ${isSuccess ? 'bg-green-50 border border-green-200' : isAlreadyIn ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isSuccess ? 'bg-green-50 border border-green-200' : isAlreadyIn ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
               {isSuccess ? <CheckCircle2 size={18} className="text-green-600" strokeWidth={1.5} /> :
                isAlreadyIn ? <AlertTriangle size={18} className="text-amber-600" strokeWidth={1.5} /> :
                <XCircle size={18} className="text-red-600" strokeWidth={1.5} />}
@@ -84,7 +83,7 @@ function FeedbackModal({ result, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="mt-4 w-full py-2 text-[12px] font-medium border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6] transition-all"
+            className="mt-5 w-full py-2.5 text-[13px] font-medium border border-slate-200 rounded-xl bg-white shadow-sm hover:bg-slate-50 transition-all text-slate-700"
           >
             Continue Scanning
           </button>
@@ -146,43 +145,42 @@ export default function Scanner() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Mode Toggle */}
-      <div className="border border-[#CBD5E1] bg-white rounded-sm p-1 flex gap-1" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
+      <div className="border border-slate-200 bg-white rounded-2xl p-1.5 flex flex-wrap sm:flex-nowrap gap-1.5 shadow-sm max-w-3xl mx-auto">
         {MODES.map((m) => (
           <motion.button
             key={m.id}
             onClick={() => setMode(m.id)}
             whileHover={{ scale: 1.01 }}
-            className={`flex-1 py-2.5 px-4 rounded-sm text-[12px] font-semibold transition-all flex items-center justify-center gap-2
-              ${mode === m.id ? 'bg-[#111827] text-white shadow-hard-sm' : 'text-[#6B7280] hover:bg-[#F3F4F6]'}`}
+            className={`flex-1 min-w-[100px] py-3 px-2 sm:px-4 rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all flex items-center justify-center gap-2
+              ${mode === m.id ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
           >
-            <span className="text-[10px] font-bold">{m.icon}</span>
-            <span>{m.label}</span>
-            <span className="text-[10px] opacity-60 hidden sm:block">{m.label_ja}</span>
+            <span className="text-[12px] font-bold">{m.icon}</span>
+            <span className="truncate">{m.label}</span>
           </motion.button>
         ))}
       </div>
 
-      <div className="grid grid-cols-5 gap-5">
+      <div className="flex flex-col lg:grid lg:grid-cols-5 gap-6">
         {/* Scanner Area */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-5">
           {/* Input Mode Toggle */}
-          <div className="border border-[#CBD5E1] bg-white rounded-sm p-4" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
-            <div className="flex items-center gap-2 mb-4">
+          <div className="border border-slate-200 bg-white rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
               <button
                 onClick={() => setInputMode('manual')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-sm border transition-all
-                  ${inputMode === 'manual' ? 'bg-[#111827] text-white border-[#111827]' : 'border-[#CBD5E1] text-[#6B7280] hover:bg-[#F3F4F6]'}`}
+                className={`flex items-center gap-2 px-4 py-2 text-[13px] rounded-xl border transition-all font-medium whitespace-nowrap
+                  ${inputMode === 'manual' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
               >
-                <Keyboard size={12} strokeWidth={1.5} /> Manual Entry
+                <Keyboard size={14} strokeWidth={2} /> Manual Entry
               </button>
               <button
                 onClick={() => setInputMode('qr')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-sm border transition-all
-                  ${inputMode === 'qr' ? 'bg-[#111827] text-white border-[#111827]' : 'border-[#CBD5E1] text-[#6B7280] hover:bg-[#F3F4F6]'}`}
+                className={`flex items-center gap-2 px-4 py-2 text-[13px] rounded-xl border transition-all font-medium whitespace-nowrap
+                  ${inputMode === 'qr' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
               >
-                <QrCode size={12} strokeWidth={1.5} /> Camera QR
+                <QrCode size={14} strokeWidth={2} /> Camera QR
               </button>
               <div className={`ml-auto flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-sm border ${loading ? 'border-amber-200 bg-amber-50 text-amber-600' : 'border-green-200 bg-green-50 text-green-600'}`}>
                 <Wifi size={10} strokeWidth={1.5} /> {loading ? 'Processing...' : 'Active'}
@@ -192,14 +190,14 @@ export default function Scanner() {
             {inputMode === 'manual' ? (
               <div className="space-y-3">
                 <div className="relative">
-                  <ScanLine size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.5} />
+                  <ScanLine size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" strokeWidth={1.5} />
                   <input
                     type="text"
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && processCheckin(manualCode)}
                     placeholder="Enter QR code or ticket number — Press Enter"
-                    className="w-full pl-8 pr-3 py-3 text-[13px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] focus:bg-white transition-all font-mono"
+                    className="w-full pl-11 pr-4 py-3.5 text-[14px] border border-slate-200 rounded-2xl bg-slate-50 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-mono shadow-inner"
                     disabled={loading}
                     autoFocus
                   />
@@ -209,11 +207,10 @@ export default function Scanner() {
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   disabled={loading || !manualCode.trim()}
-                  className="w-full py-2.5 bg-[#111827] text-white text-[13px] font-semibold rounded-sm flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
-                  style={{ boxShadow: '3px 3px 0px 0px rgba(0,0,0,0.15)' }}
+                  className="w-full py-3 bg-slate-900 text-white text-[14px] font-semibold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-40 transition-all shadow-md hover:bg-slate-800"
                 >
                   {loading ? (
-                    <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
                   ) : (
                     <><CheckCircle2 size={14} strokeWidth={2} /> Process Check-in</>
                   )}
@@ -227,8 +224,8 @@ export default function Scanner() {
           </div>
 
           {/* Mode description */}
-          <div className="border border-[#CBD5E1] bg-[#F9FAFB] rounded-sm px-4 py-3">
-            <div className="flex items-start gap-3">
+          <div className="border border-slate-200 bg-slate-50/50 rounded-2xl px-6 py-5 shadow-sm">
+            <div className="flex items-start gap-4">
               <div className="text-[20px]">{MODES.find(m => m.id === mode)?.icon}</div>
               <div>
                 <div className="text-[13px] font-semibold text-[#111827]">{MODES.find(m => m.id === mode)?.label}</div>
@@ -243,9 +240,9 @@ export default function Scanner() {
         </div>
 
         {/* History Panel */}
-        <div className="col-span-2">
-          <div className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden h-full" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
-            <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
+        <div className="lg:col-span-2">
+          <div className="border border-slate-200 bg-white rounded-3xl overflow-hidden h-full shadow-sm flex flex-col">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <span className="text-[12px] font-semibold text-[#374151]">Validation History</span>
               <span className="text-[11px] text-[#9CA3AF]">{history.length} scans</span>
             </div>

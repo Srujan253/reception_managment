@@ -22,12 +22,11 @@ function StatCard({ stat, value, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.35 }}
       whileHover={{ scale: 1.02, y: -2 }}
-      className="border border-[#CBD5E1] bg-white rounded-sm p-5 cursor-default"
-      style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.06)' }}
+      className="border border-slate-200 bg-white rounded-2xl p-6 cursor-default transition-all shadow-sm"
     >
       <div className="flex items-start justify-between mb-4">
-        <div className="w-8 h-8 bg-[#F3F4F6] border border-[#CBD5E1] rounded-sm flex items-center justify-center">
-          <Icon size={14} strokeWidth={1.5} className={stat.color} />
+        <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center">
+          <Icon size={18} strokeWidth={1.5} className={stat.color} />
         </div>
         {stat.positive && (
           <span className="flex items-center gap-1 text-[10px] font-semibold text-[#16A34A] bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-sm">
@@ -35,11 +34,11 @@ function StatCard({ stat, value, index }) {
           </span>
         )}
       </div>
-      <div className="text-[28px] font-bold text-[#111827] leading-none mb-1">
+      <div className="text-[32px] font-bold text-slate-900 leading-none mb-1.5">
         {value?.toLocaleString() ?? '—'}
       </div>
-      <div className="text-[12px] text-[#6B7280] font-medium">{stat.label}</div>
-      <div className="text-[10px] text-[#9CA3AF] mt-0.5">{stat.label_ja}</div>
+      <div className="text-[13px] text-slate-500 font-medium">{stat.label}</div>
+      <div className="text-[11px] text-slate-400 mt-0.5">{stat.label_ja}</div>
     </motion.div>
   );
 }
@@ -58,7 +57,7 @@ function HierarchyRow({ event, depth = 0 }) {
   return (
     <>
       <tr
-        className={`border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors cursor-pointer ${depth > 0 ? 'bg-[#FAFAFA]' : ''}`}
+        className={`border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${depth > 0 ? 'bg-slate-50/50' : ''}`}
         onClick={() => hasChildren && setExpanded(!expanded)}
       >
         <td className="px-4 py-3">
@@ -75,14 +74,14 @@ function HierarchyRow({ event, depth = 0 }) {
             </span>
           </div>
         </td>
-        <td className="px-4 py-3 text-[12px] text-[#9CA3AF]">{event.name_ja || event.title_ja || '—'}</td>
-        <td className="px-4 py-3">
-          <span className={`badge text-[10px] ${statusColor}`}>{event.status || '—'}</span>
+        <td className="px-5 py-4 text-[13px] text-slate-500">{event.name_ja || event.title_ja || '—'}</td>
+        <td className="px-5 py-4">
+          <span className={`badge text-[11px] px-2.5 py-1 ${statusColor}`}>{event.status || '—'}</span>
         </td>
-        <td className="px-4 py-3 text-[12px] text-[#6B7280]">
+        <td className="px-5 py-4 text-[13px] text-slate-500">
           {event.participant_count || event.attendee_count || event.session_count || '—'}
         </td>
-        <td className="px-4 py-3 text-[11px] text-[#9CA3AF]">
+        <td className="px-5 py-4 text-[12px] text-slate-400">
           {event.start_date ? new Date(event.start_date).toLocaleDateString('en-GB') :
            event.start_time ? new Date(event.start_time).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
         </td>
@@ -123,7 +122,7 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statConfig.map((s, i) => (
           <StatCard key={s.key} stat={s} value={stats?.[s.key]} index={i} />
         ))}
@@ -135,10 +134,9 @@ export default function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="border border-[#CBD5E1] bg-white rounded-sm p-5"
-          style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}
+          className="border border-slate-200 bg-white rounded-2xl p-6 shadow-sm"
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Activity size={13} strokeWidth={1.5} className="text-[#6B7280]" />
               <span className="text-[13px] font-medium text-[#374151]">Overall Check-in Rate</span>
@@ -148,12 +146,12 @@ export default function Dashboard() {
               <span className="text-[11px] text-[#9CA3AF]">{stats.live_checkins} / {stats.total_registered}</span>
             </div>
           </div>
-          <div className="h-2 bg-[#F3F4F6] border border-[#CBD5E1] rounded-sm overflow-hidden">
+          <div className="h-3 bg-slate-100 border border-slate-200 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${stats.checkin_rate}%` }}
               transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
-              className="h-full bg-[#111827]"
+              className="h-full bg-slate-800 rounded-full"
             />
           </div>
         </motion.div>
@@ -164,13 +162,12 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.35 }}
-        className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden"
-        style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}
+        className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm"
       >
-        <div className="px-5 py-3.5 border-b border-[#F3F4F6] flex items-center justify-between">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
-            <h3 className="text-[13px] font-semibold text-[#111827]">Event Hierarchy</h3>
-            <p className="text-[11px] text-[#9CA3AF] mt-0.5">イベント階層 — Global Events → Sub-Events → Sessions → Participants</p>
+            <h3 className="text-[15px] font-semibold text-slate-900">Event Hierarchy</h3>
+            <p className="text-[12px] text-slate-500 mt-1">イベント階層 — Global Events → Sub-Events → Sessions → Participants</p>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="flex items-center gap-1 text-[10px] text-[#6B7280] border border-[#CBD5E1] px-2 py-1 rounded-sm bg-[#F9FAFB]">
@@ -181,9 +178,9 @@ export default function Dashboard() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
+              <tr className="border-b border-slate-200 bg-slate-50">
                 {['Name / 名前', 'Japanese / 日本語', 'Status', 'Count', 'Date / Time', 'Venue/Room'].map((h) => (
-                  <th key={h} className="px-4 py-2.5 text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-5 py-3.5 text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>

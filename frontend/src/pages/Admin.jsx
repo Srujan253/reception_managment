@@ -87,17 +87,17 @@ export default function Admin() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* RBAC Guide */}
-      <div className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
-        <div className="px-5 py-3.5 border-b border-[#F3F4F6] flex items-center gap-2">
-          <Shield size={13} strokeWidth={1.5} className="text-[#6B7280]" />
-          <span className="text-[13px] font-semibold text-[#374151]">Role-Based Access Control (RBAC)</span>
-          <span className="text-[10px] text-[#9CA3AF] ml-1">— 役割別アクセス制御</span>
+      <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2.5 bg-slate-50/50">
+          <Shield size={16} strokeWidth={2} className="text-slate-500" />
+          <span className="text-[14px] font-semibold text-slate-800">Role-Based Access Control (RBAC)</span>
+          <span className="text-[12px] text-slate-400 ml-1 font-medium">— 役割別アクセス制御</span>
         </div>
-        <div className="p-5 grid grid-cols-3 gap-4">
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
           {RBAC_GUIDE.map((r) => (
-            <div key={r.role} className="border border-[#CBD5E1] rounded-sm overflow-hidden" style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.04)' }}>
-              <div className={`px-3 py-2 ${r.style}`}>
-                <span className="text-[12px] font-bold">{r.role}</span>
+            <div key={r.role} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div className={`px-4 py-3 ${r.style} bg-opacity-90`}>
+                <span className="text-[13px] font-bold">{r.role}</span>
               </div>
               <div className="px-3 py-3 space-y-1.5">
                 <div className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide mb-2">Allowed</div>
@@ -125,11 +125,11 @@ export default function Admin() {
       </div>
 
       {/* Users table */}
-      <div className="border border-[#CBD5E1] bg-white rounded-sm overflow-hidden" style={{ boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.05)' }}>
-        <div className="px-5 py-3.5 border-b border-[#F3F4F6] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UserCog size={13} strokeWidth={1.5} className="text-[#6B7280]" />
-            <span className="text-[13px] font-semibold text-[#374151]">Staff Management ({users.length})</span>
+      <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="flex items-center gap-2.5">
+            <UserCog size={16} strokeWidth={2} className="text-slate-500" />
+            <span className="text-[14px] font-semibold text-slate-800">Staff Management ({users.length})</span>
           </div>
         </div>
         <table className="w-full">
@@ -148,8 +148,7 @@ export default function Admin() {
                 className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-[#111827] rounded-sm flex items-center justify-center text-white text-[11px] font-bold"
-                      style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.15)' }}>
+                    <div className="w-8 h-8 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-center text-indigo-700 text-[12px] font-bold shadow-sm">
                       {u.name?.charAt(0)}
                     </div>
                     <div>
@@ -206,17 +205,16 @@ export default function Admin() {
       {/* Password Reset Modal */}
       {pwModal && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={() => setPwModal(null)}>
-          <motion.div initial={{ scale: 0.93, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            className="bg-white border border-[#CBD5E1] rounded-sm w-full max-w-sm p-6"
-            style={{ boxShadow: '8px 8px 0px 0px rgba(0,0,0,0.08)' }} onClick={e => e.stopPropagation()}>
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-[14px] font-semibold text-[#111827] mb-1">Reset Password</h3>
             <p className="text-[12px] text-[#6B7280] mb-4">Set a new password for <strong>{pwModal.name}</strong></p>
             <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
               placeholder="New password (min 6 chars)"
-              className="w-full px-3 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] mb-3" />
+              className="w-full px-4 py-3 text-[13px] border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-mono shadow-inner mb-4" />
             <div className="flex gap-2">
-              <button onClick={() => setPwModal(null)} className="flex-1 py-2 text-[12px] border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6]">Cancel</button>
-              <button onClick={handlePasswordReset} className="flex-1 py-2 text-[12px] bg-[#111827] text-white rounded-sm font-medium" style={{ boxShadow: '2px 2px 0px 0px rgba(0,0,0,0.15)' }}>
+              <button onClick={() => setPwModal(null)} className="flex-1 py-2.5 text-[13px] border border-slate-200 rounded-lg hover:bg-slate-50 font-medium text-slate-600 transition-all">Cancel</button>
+              <button onClick={handlePasswordReset} className="flex-1 py-2.5 text-[13px] bg-slate-900 text-white rounded-lg font-medium shadow-md hover:bg-slate-800 transition-all">
                 Update Password
               </button>
             </div>
