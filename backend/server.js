@@ -4,6 +4,8 @@ const path = require('path');
 require('dotenv').config();
 
 const pool = require('./db');
+const { apiLimiter, loginLimiter, passwordResetLimiter } = require('./middleware/rateLimiter');
+const { securityHeaders } = require('./config/ssl');
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -26,6 +28,15 @@ app.use(cors({
   ],
   credentials: true,
 }));
+
+// Security Headers
+app.use(securityHeaders);
+
+// Rate Limiting
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', loginLimiter);
+app.use('/api/auth/forgot-password', passwordResetLimiter);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -50,6 +61,11 @@ async function initSchema() {
       password_hash VARCHAR(255) NOT NULL,
       role VARCHAR(50) NOT NULL DEFAULT 'staff' CHECK (role IN ('admin', 'manager', 'staff')),
       is_active BOOLEAN DEFAULT true,
+      deleted BOOLEAN DEFAULT false,
+      failed_login_attempts INTEGER DEFAULT 0,
+      locked_until TIMESTAMPTZ,
+      reset_token VARCHAR(255),
+      reset_token_expiry TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )`,
@@ -64,6 +80,7 @@ async function initSchema() {
       status VARCHAR(50) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'active', 'completed', 'cancelled')),
       capacity INTEGER DEFAULT 0,
       created_by INTEGER REFERENCES users(id),
+      deleted BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )`,
@@ -76,6 +93,7 @@ async function initSchema() {
       venue_room VARCHAR(255),
       capacity INTEGER DEFAULT 0,
       status VARCHAR(50) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'active', 'completed', 'cancelled')),
+      deleted BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )`,
@@ -91,6 +109,7 @@ async function initSchema() {
       end_time TIMESTAMPTZ NOT NULL,
       capacity INTEGER DEFAULT 100,
       status VARCHAR(50) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'active', 'completed', 'cancelled')),
+      deleted BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )`,
@@ -109,6 +128,7 @@ async function initSchema() {
       checkin_at_3 TIMESTAMPTZ,
       is_checked_in BOOLEAN DEFAULT false,
       notes TEXT,
+      deleted BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )`,
@@ -121,14 +141,36 @@ async function initSchema() {
       duration_seconds INTEGER,
       guard_expires_at TIMESTAMPTZ NOT NULL,
       is_early_exit_blocked BOOLEAN DEFAULT true,
+      deleted BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE(session_id, participant_id)
     )`,
+    `CREATE TABLE IF NOT EXISTS audit_logs (
+      id SERIAL PRIMARY KEY,
+      action VARCHAR(100) NOT NULL,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      target_table VARCHAR(100),
+      target_id VARCHAR(255),
+      details JSONB,
+      ip_address VARCHAR(50),
+      status VARCHAR(50) DEFAULT 'success',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      INDEX idx_audit_action (action),
+      INDEX idx_audit_user (user_id),
+      INDEX idx_audit_created (created_at)
+    )`,
     `CREATE INDEX IF NOT EXISTS idx_participants_qr ON participants(qr_code)`,
     `CREATE INDEX IF NOT EXISTS idx_participants_event ON participants(event_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_participants_event_sub ON participants(event_id, deleted)`,
+    `CREATE INDEX IF NOT EXISTS idx_participants_checked_in ON participants(event_id, is_checked_in)`,
     `CREATE INDEX IF NOT EXISTS idx_session_attendance_session ON session_attendance(session_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_session_attendance_status ON session_attendance(session_id, exit_time)`,
     `CREATE INDEX IF NOT EXISTS idx_sessions_sub_event ON sessions(sub_event_id)`,
     `CREATE INDEX IF NOT EXISTS idx_sub_events_event ON sub_events(event_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`,
+    `CREATE INDEX IF NOT EXISTS idx_events_deleted ON events(deleted)`,
+    `CREATE INDEX IF NOT EXISTS idx_sessions_deleted ON sessions(deleted)`,
+    `CREATE INDEX IF NOT EXISTS idx_participants_deleted ON participants(deleted)`,
   ];
 
   try {

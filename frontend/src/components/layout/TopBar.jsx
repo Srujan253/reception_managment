@@ -1,7 +1,8 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
-import { Search, Bell, Menu } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Bell, Menu, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const pageTitles = {
   '/': 'Command Dashboard',
@@ -13,8 +14,10 @@ const pageTitles = {
 };
 
 export default function TopBar({ onMenuClick }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const title = pageTitles[location.pathname] || 'EventHQ';
 
   const roleBadge = {
@@ -23,8 +26,18 @@ export default function TopBar({ onMenuClick }) {
     staff: { bg: 'bg-gray-500 text-white', label: 'STAFF' },
   }[user?.role] || { bg: 'bg-gray-500 text-white', label: 'USER' };
 
+  const handleLogout = async () => {
+    try {
+      logout();
+      toast.success('Logged out successfully');
+      navigate('/login');
+    } catch (err) {
+      toast.error('Logout failed');
+    }
+  };
+
   return (
-    <header className="h-14 border-b border-slate-200 bg-white flex items-center px-4 md:px-6 gap-3 md:gap-4 flex-shrink-0">
+    <header className="h-14 border-b border-slate-200 bg-white flex items-center px-4 md:px-6 gap-3 md:gap-4 flex-shrink-0 relative z-50">
       <button 
         onClick={onMenuClick}
         className="md:hidden p-2 -ml-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
@@ -56,10 +69,58 @@ export default function TopBar({ onMenuClick }) {
         {roleBadge.label}
       </div>
 
-      {/* Avatar */}
-      <div className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
-        {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+      {/* User Menu Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setShowUserMenu(!showUserMenu)}
+          className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm hover:bg-violet-700 transition-colors"
+        >
+          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+        </button>
+
+        {/* Dropdown Menu */}
+        {showUserMenu && (
+          <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-50">
+            {/* User Info */}
+            <div className="px-4 py-3 border-b border-slate-100">
+              <p className="text-[13px] font-semibold text-slate-900">{user?.name}</p>
+              <p className="text-[11px] text-slate-500">{user?.email}</p>
+            </div>
+
+            {/* Menu Items */}
+            <button
+              onClick={() => {
+                setShowUserMenu(false);
+                navigate('/forgot-password');
+              }}
+              className="w-full px-4 py-2 text-left text-[13px] text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+            >
+              <User size={14} />
+              Reset Password
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={() => {
+                setShowUserMenu(false);
+                handleLogout();
+              }}
+              className="w-full px-4 py-2 text-left text-[13px] text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 border-t border-slate-100"
+            >
+              <LogOut size={14} />
+              Sign Out
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Close dropdown when clicking outside */}
+      {showUserMenu && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowUserMenu(false)}
+        />
+      )}
     </header>
   );
 }

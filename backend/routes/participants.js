@@ -4,6 +4,8 @@ const { parse } = require('csv-parse/sync');
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../db');
 const { authenticate, requireManager, requireAdmin } = require('../middleware/auth');
+const { auditLog } = require('../utils/auditLogger');
+const { validateEmail, validatePhone, validateName, validateCategory } = require('../utils/validator');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -12,6 +14,20 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 router.post('/register', async (req, res) => {
   const { event_id, name, email } = req.body;
   if (!event_id || !name) return res.status(400).json({ error: 'event_id and name required' });
+
+  // Validate name
+  const nameValidation = validateName(name);
+  if (!nameValidation.valid) {
+    return res.status(400).json({ error: nameValidation.error });
+  }
+
+  // Validate email if provided
+  if (email) {
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      return res.status(400).json({ error: emailValidation.error });
+    }
+  }
 
   try {
     const qr_code = `EVT-${uuidv4().split('-')[0].toUpperCase()}-${Date.now()}`;
@@ -31,7 +47,7 @@ router.get('/', authenticate, async (req, res) => {
   const { event_id, role, search, page = 1, limit = 50 } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
 
-  let query = 'SELECT p.*, e.name as event_name FROM participants p LEFT JOIN events e ON e.id = p.event_id WHERE 1=1';
+  let query = 'SELECT p.*, e.name as event_name FROM participants p LEFT JOIN events e ON e.id = p.event_id WHERE p.deleted = false';
   const params = [];
 
   if (event_id) { params.push(event_id); query += ` AND p.event_id = $${params.length}`; }
@@ -65,7 +81,7 @@ router.get('/', authenticate, async (req, res) => {
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT p.*, e.name as event_name FROM participants p LEFT JOIN events e ON e.id = p.event_id WHERE p.id = $1',
+      'SELECT p.*, e.name as event_name FROM participants p LEFT JOIN events e ON e.id = p.event_id WHERE p.id = $1 AND p.deleted = false',
       [req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Participant not found' });
@@ -93,6 +109,28 @@ router.get('/qr/:code', authenticate, async (req, res) => {
 router.post('/', authenticate, requireManager, async (req, res) => {
   const { event_id, name, name_ja, email, organization, role, ticket_number, notes } = req.body;
   if (!event_id || !name) return res.status(400).json({ error: 'event_id and name required' });
+
+  // Validate name
+  const nameValidation = validateName(name);
+  if (!nameValidation.valid) {
+    return res.status(400).json({ error: nameValidation.error });
+  }
+
+  // Validate email if provided
+  if (email) {
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      return res.status(400).json({ error: emailValidation.error });
+    }
+  }
+
+  // Validate role if provided
+  if (role) {
+    const roleValidation = validateCategory(role);
+    if (!roleValidation.valid) {
+      return res.status(400).json({ error: roleValidation.error });
+    }
+  }
 
   try {
     const qr_code = `EVT-${uuidv4().split('-')[0].toUpperCase()}-${Date.now()}`;
@@ -125,8 +163,15 @@ router.put('/:id', authenticate, requireManager, async (req, res) => {
 
 // DELETE /api/participants/:id
 router.delete('/:id', authenticate, requireManager, async (req, res) => {
+  const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
   try {
-    await pool.query('DELETE FROM participants WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      'UPDATE participants SET deleted = true, updated_at = NOW() WHERE id = $1 AND deleted = false RETURNING id, name',
+      [req.params.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Participant not found' });
+    
+    await auditLog('participant_deleted', req.user.id, 'participants', req.params.id, { name: result.rows[0].name }, ipAddress);
     res.json({ message: 'Participant deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

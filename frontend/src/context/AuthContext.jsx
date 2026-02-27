@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../lib/api';
 
 const AuthContext = createContext(null);
 
@@ -7,12 +8,31 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('eventhq_user');
-    const token = localStorage.getItem('eventhq_token');
-    if (stored && token) {
-      try { setUser(JSON.parse(stored)); } catch {}
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      const stored = localStorage.getItem('eventhq_user');
+      const token = localStorage.getItem('eventhq_token');
+      
+      if (stored && token) {
+        try { 
+          setUser(JSON.parse(stored)); 
+          
+          // Optional: Verify token is still valid by fetching current user
+          try {
+            const res = await api.get('/auth/me');
+            if (res.data) {
+              setUser(res.data);
+              localStorage.setItem('eventhq_user', JSON.stringify(res.data));
+            }
+          } catch (err) {
+            // Token might be expired, keep stored user for now
+            console.log('Could not fetch current user from server');
+          }
+        } catch {}
+      }
+      setLoading(false);
+    };
+    
+    initAuth();
   }, []);
 
   const login = (userData, token) => {
@@ -43,3 +63,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+

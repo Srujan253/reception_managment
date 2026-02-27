@@ -132,6 +132,17 @@ export default function Login() {
                 'Sign in'
               )}
             </motion.button>
+
+            {/* Forgot Password Link */}
+            <div className="text-center mt-3">
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-slate-600 hover:text-slate-900 text-[13px] font-medium transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
           </form>
 
           {/* Attendee Registration Link */}

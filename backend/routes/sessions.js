@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../db');
 const { authenticate, requireManager } = require('../middleware/auth');
+const { auditLog } = require('../utils/auditLogger');
 
 const router = express.Router();
 
@@ -13,15 +14,16 @@ router.get('/', authenticate, async (req, res) => {
     SELECT s.*, se.name as sub_event_name, e.name as event_name,
       COUNT(sa.id) as attendee_count
     FROM sessions s
-    LEFT JOIN sub_events se ON se.id = s.sub_event_id
-    LEFT JOIN events e ON e.id = s.event_id
-    LEFT JOIN session_attendance sa ON sa.session_id = s.id AND sa.exit_time IS NULL
+    LEFT JOIN sub_events se ON se.id = s.sub_event_id AND se.deleted = false
+    LEFT JOIN events e ON e.id = s.event_id AND e.deleted = false
+    LEFT JOIN session_attendance sa ON sa.session_id = s.id AND sa.exit_time IS NULL AND sa.deleted = false
+    WHERE s.deleted = false
   `;
   const params = [];
   const conditions = [];
   if (event_id) { conditions.push(`s.event_id = $${params.length + 1}`); params.push(event_id); }
   if (sub_event_id) { conditions.push(`s.sub_event_id = $${params.length + 1}`); params.push(sub_event_id); }
-  if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
+  if (conditions.length > 0) query += ' AND ' + conditions.join(' AND ');
   query += ' GROUP BY s.id, se.name, e.name ORDER BY s.start_time';
 
   try {
@@ -40,7 +42,7 @@ router.get('/:id', authenticate, async (req, res) => {
       FROM sessions s
       LEFT JOIN sub_events se ON se.id = s.sub_event_id
       LEFT JOIN events e ON e.id = s.event_id
-      WHERE s.id = $1
+      WHERE s.id = $1 AND s.deleted = false
     `, [req.params.id]);
     
     if (!session.rows.length) return res.status(404).json({ error: 'Session not found' });
@@ -51,7 +53,7 @@ router.get('/:id', authenticate, async (req, res) => {
         EXTRACT(EPOCH FROM (NOW() - sa.entry_time))::INTEGER as seconds_in
       FROM session_attendance sa
       JOIN participants p ON p.id = sa.participant_id
-      WHERE sa.session_id = $1
+      WHERE sa.session_id = $1 AND sa.deleted = false
       ORDER BY sa.entry_time DESC
     `, [req.params.id]);
 
@@ -83,14 +85,18 @@ router.post('/', authenticate, requireManager, async (req, res) => {
 // PUT /api/sessions/:id
 router.put('/:id', authenticate, requireManager, async (req, res) => {
   const { title, title_ja, speaker_name, room, start_time, end_time, capacity, status } = req.body;
+  const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+  
   try {
     const result = await pool.query(
       `UPDATE sessions SET title=$1, title_ja=$2, speaker_name=$3, room=$4,
        start_time=$5, end_time=$6, capacity=$7, status=$8, updated_at=NOW()
-       WHERE id=$9 RETURNING *`,
+       WHERE id=$9 AND deleted = false RETURNING *`,
       [title, title_ja, speaker_name, room, start_time, end_time, capacity, status, req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Session not found' });
+    
+    await auditLog('session_updated', req.user.id, 'sessions', req.params.id, { title }, ipAddress);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -99,8 +105,16 @@ router.put('/:id', authenticate, requireManager, async (req, res) => {
 
 // DELETE /api/sessions/:id
 router.delete('/:id', authenticate, requireManager, async (req, res) => {
+  const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+  
   try {
-    await pool.query('DELETE FROM sessions WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      'UPDATE sessions SET deleted = true, updated_at = NOW() WHERE id = $1 AND deleted = false RETURNING id, title',
+      [req.params.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Session not found' });
+    
+    await auditLog('session_deleted', req.user.id, 'sessions', req.params.id, { title: result.rows[0].title }, ipAddress);
     res.json({ message: 'Session deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
