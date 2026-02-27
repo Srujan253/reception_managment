@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-const authenticate = (req, res, next) => {
+export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'No token provided' });
@@ -16,7 +16,7 @@ const authenticate = (req, res, next) => {
   }
 };
 
-const requireRole = (...roles) => {
+export const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
     if (!roles.includes(req.user.role)) {
@@ -26,8 +26,6 @@ const requireRole = (...roles) => {
   };
 };
 
-const requireAdmin = requireRole('admin');
-const requireManager = requireRole('admin', 'manager');
-const requireStaff = requireRole('admin', 'manager', 'staff');
-
-module.exports = { authenticate, requireRole, requireAdmin, requireManager, requireStaff };
+export const requireAdmin = requireRole('admin');
+export const requireManager = requireRole('admin', 'manager');
+export const requireStaff = requireRole('admin', 'manager', 'staff');

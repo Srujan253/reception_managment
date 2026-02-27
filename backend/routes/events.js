@@ -1,6 +1,6 @@
-const express = require('express');
-const pool = require('../db');
-const { authenticate, requireManager, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import pool from '../db.js';
+import { authenticate, requireManager, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -161,4 +161,4 @@ router.delete('/:eventId/sub-events/:subId', authenticate, requireAdmin, async (
   }
 });
 
-module.exports = router;
+export default router;

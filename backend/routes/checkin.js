@@ -1,6 +1,6 @@
-const express = require('express');
-const pool = require('../db');
-const { authenticate } = require('../middleware/auth');
+import express from 'express';
+import pool from '../db.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -179,4 +179,4 @@ function sanitizeParticipant(p) {
   };
 }
 
-module.exports = router;
+export default router;

@@ -27,18 +27,33 @@ body {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--bg-secondary); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
 
 /* Hard shadow utility */
 .shadow-hard {
   box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.08);
 }
+
 .shadow-hard-sm {
   box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.06);
 }
+
 .shadow-hard-lg {
   box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.10);
 }
@@ -63,4 +78,79 @@ body {
 }
 
 /* Transitions */
-.transition-all { transition: all 0.15s ease; }
+.transition-all {
+  transition: all 0.15s ease;
+}
+
+/* QR Scanner Overrides (html5-qrcode) */
+#qr-reader {
+  border: none !important;
+  background: #F9FAFB !important;
+}
+
+#qr-reader__status_span {
+  display: none !important;
+}
+
+#qr-reader__dashboard {
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+#qr-reader__dashboard_section_csr button,
+#qr-reader__dashboard_section_fsr button {
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  font-family: 'Inter', sans-serif !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  text-transform: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Primary "Start Scanning" button */
+#qr-reader__dashboard_section_csr button {
+  background: #0F172A !important;
+  color: white !important;
+  border: 1px solid #0F172A !important;
+}
+
+#qr-reader__dashboard_section_csr button:hover {
+  background: #1E293B !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* "Stop Scanning" button */
+#qr-reader__dashboard_section_fsr button {
+  background: #ef4444 !important;
+  color: white !important;
+  border: 1px solid #dc2626 !important;
+}
+
+#qr-reader__dashboard_section_fsr button:hover {
+  background: #f87171 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Select camera dropdown */
+#qr-reader__camera_selection {
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
+  font-size: 12px !important;
+  background: white !important;
+  margin-bottom: 10px !important;
+  outline: none !important;
+}
+
+#qr-reader video {
+  border-radius: 16px !important;
+  border: 4px solid white !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}

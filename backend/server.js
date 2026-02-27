@@ -1,29 +1,33 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
-
-const pool = require('./db');
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
+import pool from './db.js';
 
 // Routes
-const authRoutes = require('./routes/auth');
-const eventRoutes = require('./routes/events');
-const sessionRoutes = require('./routes/sessions');
-const participantRoutes = require('./routes/participants');
-const checkinRoutes = require('./routes/checkin');
-const dashboardRoutes = require('./routes/dashboard');
-const userRoutes = require('./routes/users');
+import authRoutes from './routes/auth.js';
+import eventRoutes from './routes/events.js';
+import sessionRoutes from './routes/sessions.js';
+import participantRoutes from './routes/participants.js';
+import checkinRoutes from './routes/checkin.js';
+import dashboardRoutes from './routes/dashboard.js';
+import userRoutes from './routes/users.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173', 
-    'http://localhost:3000',
-    'https://rosa-visitors-eagle-logan.trycloudflare.com'
-  ],
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -40,8 +44,6 @@ app.use('/api/users', userRoutes);
 
 // DB Schema Init
 async function initSchema() {
-  const bcrypt = require('bcryptjs');
-  
   const tables = [
     `CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,

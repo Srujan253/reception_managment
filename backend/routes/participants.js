@@ -1,9 +1,9 @@
-const express = require('express');
-const multer = require('multer');
-const { parse } = require('csv-parse/sync');
-const { v4: uuidv4 } = require('uuid');
-const pool = require('../db');
-const { authenticate, requireManager, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import multer from 'multer';
+import { parse } from 'csv-parse/sync';
+import { v4 as uuidv4 } from 'uuid';
+import pool from '../db.js';
+import { authenticate, requireManager, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -222,4 +222,4 @@ router.get('/export/:event_id', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
