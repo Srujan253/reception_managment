@@ -38,4 +38,4 @@ function validatePassword(password) {
   };
 }
 
-module.exports = { validatePassword };
+export { validatePassword };

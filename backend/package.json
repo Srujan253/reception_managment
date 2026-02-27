@@ -1,6 +1,7 @@
 {
   "name": "reception-management-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Enterprise Event Check-in & Reception Management System - Backend",
   "main": "server.js",
   "scripts": {

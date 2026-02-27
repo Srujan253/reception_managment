@@ -154,7 +154,7 @@ function validateUrl(url) {
   }
 }
 
-module.exports = {
+export {
   validateEmail,
   validatePhone,
   validateDate,

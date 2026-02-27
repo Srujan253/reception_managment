@@ -1,20 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 
-const pool = require('./db');
-const { apiLimiter, loginLimiter, passwordResetLimiter } = require('./middleware/rateLimiter');
-const { securityHeaders } = require('./config/ssl');
+dotenv.config();
+
+import pool from './db.js';
+import { apiLimiter, loginLimiter, passwordResetLimiter } from './middleware/rateLimiter.js';
+import { securityHeaders } from './config/ssl.js';
 
 // Routes
-const authRoutes = require('./routes/auth');
-const eventRoutes = require('./routes/events');
-const sessionRoutes = require('./routes/sessions');
-const participantRoutes = require('./routes/participants');
-const checkinRoutes = require('./routes/checkin');
-const dashboardRoutes = require('./routes/dashboard');
-const userRoutes = require('./routes/users');
+import authRoutes from './routes/auth.js';
+import eventRoutes from './routes/events.js';
+import sessionRoutes from './routes/sessions.js';
+import participantRoutes from './routes/participants.js';
+import checkinRoutes from './routes/checkin.js';
+import dashboardRoutes from './routes/dashboard.js';
+import userRoutes from './routes/users.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,8 +54,6 @@ app.use('/api/users', userRoutes);
 
 // DB Schema Init
 async function initSchema() {
-  const bcrypt = require('bcryptjs');
-  
   const tables = [
     `CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,

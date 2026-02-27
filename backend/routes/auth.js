@@ -1,13 +1,13 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const pool = require('../db');
-const { validatePassword } = require('../utils/passwordValidator');
-const { validateEmail } = require('../utils/validator');
-const { auditLog } = require('../utils/auditLogger');
-const { sendPasswordResetEmail } = require('../utils/emailService');
-const { authenticate } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import pool from '../db.js';
+import { validatePassword } from '../utils/passwordValidator.js';
+import { validateEmail, validateName } from '../utils/validator.js';
+import { auditLog } from '../utils/auditLogger.js';
+import { sendPasswordResetEmail } from '../utils/emailService.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -116,7 +116,6 @@ router.post('/register', async (req, res) => {
   }
 
   // Validate name
-  const { validateName } = require('../utils/validator');
   const nameValidation = validateName(name);
   if (!nameValidation.valid) {
     return res.status(400).json({ error: nameValidation.error });
@@ -288,4 +287,4 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

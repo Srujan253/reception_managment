@@ -1,7 +1,7 @@
-const express = require('express');
-const pool = require('../db');
-const { authenticate, requireManager } = require('../middleware/auth');
-const { auditLog } = require('../utils/auditLogger');
+import express from 'express';
+import pool from '../db.js';
+import { authenticate, requireManager } from '../middleware/auth.js';
+import { auditLog } from '../utils/auditLogger.js';
 
 const router = express.Router();
 
@@ -194,4 +194,4 @@ router.post('/:id/exit', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

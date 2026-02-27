@@ -1,9 +1,9 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const pool = require('../db');
-const { authenticate, requireAdmin } = require('../middleware/auth');
-const { validatePassword } = require('../utils/passwordValidator');
-const { auditLog } = require('../utils/auditLogger');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import pool from '../db.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { validatePassword } from '../utils/passwordValidator.js';
+import { auditLog } from '../utils/auditLogger.js';
 
 const router = express.Router();
 
@@ -103,4 +103,4 @@ router.put('/:id/password', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

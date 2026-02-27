@@ -3,7 +3,7 @@
  * Tracks all critical user actions for compliance and security
  */
 
-const pool = require('../db');
+import pool from '../db.js';
 
 /**
  * Log an audit event
@@ -78,4 +78,4 @@ async function getAuditLogs(filters = {}) {
   }
 }
 
-module.exports = { auditLog, getAuditLogs };
+export { auditLog, getAuditLogs };

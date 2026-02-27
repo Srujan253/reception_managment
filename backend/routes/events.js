@@ -1,8 +1,8 @@
-const express = require('express');
-const pool = require('../db');
-const { authenticate, requireManager, requireAdmin } = require('../middleware/auth');
-const { auditLog } = require('../utils/auditLogger');
-const { validateDate, validateDateRange, validateText, validateInteger } = require('../utils/validator');
+import express from 'express';
+import pool from '../db.js';
+import { authenticate, requireManager, requireAdmin } from '../middleware/auth.js';
+import { auditLog } from '../utils/auditLogger.js';
+import { validateDate, validateDateRange, validateText, validateInteger } from '../utils/validator.js';
 
 const router = express.Router();
 
@@ -207,4 +207,4 @@ router.delete('/:eventId/sub-events/:subId', authenticate, requireAdmin, async (
   }
 });
 
-module.exports = router;
+export default router;

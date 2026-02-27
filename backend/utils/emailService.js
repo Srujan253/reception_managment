@@ -3,7 +3,7 @@
  * Handles password reset emails and other notifications
  */
 
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 let transporter = null;
 
@@ -210,7 +210,7 @@ async function sendEventConfirmationEmail(email, eventData) {
   }
 }
 
-module.exports = {
+export {
   initializeEmailService,
   sendPasswordResetEmail,
   sendEventConfirmationEmail

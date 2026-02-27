@@ -3,6 +3,15 @@
  * Instructions for enabling HTTPS in development and production
  */
 
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /**
  * DEVELOPMENT SETUP (Self-signed certificate)
  * 
@@ -10,8 +19,8 @@
  *    openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
  * 
  * 2. In server.js, add:
- *    const https = require('https');
- *    const fs = require('fs');
+ *    import https from 'https';
+ *    import fs from 'fs';
  *    const options = {
  *      key: fs.readFileSync('./certs/key.pem'),
  *      cert: fs.readFileSync('./certs/cert.pem')
@@ -95,10 +104,6 @@ function securityHeaders(req, res, next) {
  * Create HTTPS server with cert files
  */
 function createSecureServer(app, port) {
-  const https = require('https');
-  const fs = require('fs');
-  const path = require('path');
-  
   if (process.env.NODE_ENV === 'production') {
     // Production: Use Let's Encrypt certificates
     const keyPath = process.env.SSL_KEY || '/etc/letsencrypt/live/yourdomain.com/privkey.pem';
@@ -135,7 +140,7 @@ function createSecureServer(app, port) {
   }
 }
 
-module.exports = {
+export {
   enforceHttps,
   securityHeaders,
   createSecureServer

@@ -120,7 +120,7 @@ function cleanupRateStore() {
 // Run cleanup every 10 minutes
 setInterval(cleanupRateStore, 10 * 60 * 1000);
 
-module.exports = {
+export {
   createRateLimiter,
   apiLimiter,
   loginLimiter,
