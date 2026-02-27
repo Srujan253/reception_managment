@@ -217,8 +217,20 @@ export default function Scanner() {
                 </motion.button>
               </div>
             ) : (
-              <div>
-                <div id="qr-reader" ref={scannerRef} className="rounded-sm overflow-hidden border border-[#CBD5E1]" />
+              <div className="relative group">
+                {/* Visual Scanner Frame Decoration */}
+                <div className="absolute -inset-1 bg-gradient-to-tr from-slate-200 to-slate-100 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                
+                <div className="relative bg-white pt-2">
+                  <div className="flex flex-col items-center mb-4">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-2 border border-slate-100 shadow-sm">
+                      <QrCode size={20} className="text-slate-900" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-[12px] text-slate-400 font-medium">Position code within the frame</p>
+                  </div>
+                  
+                  <div id="qr-reader" ref={scannerRef} className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm" />
+                </div>
               </div>
             )}
           </div>
