@@ -103,7 +103,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [hierarchy, setHierarchy] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   useEffect(() => {
     Promise.all([

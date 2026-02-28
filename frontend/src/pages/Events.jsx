@@ -215,6 +215,7 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
 }
 
 function EventRow({ event, onRefresh }) {
+  const { t, lang } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const [subEvents, setSubEvents] = useState([]);
   const [sessionsBySubEvent, setSessionsBySubEvent] = useState({});
@@ -434,6 +435,7 @@ function EventRow({ event, onRefresh }) {
 
 export default function Events() {
   const { isManager } = useAuth();
+  const { t } = useLanguage();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
