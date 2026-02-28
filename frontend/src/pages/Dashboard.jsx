@@ -6,15 +6,17 @@ import {
   UserCheck, Clock
 } from 'lucide-react';
 import api from '../lib/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const statConfig = [
-  { key: 'total_events', label: 'Total Events', label_ja: '総イベント数', icon: CalendarDays, color: 'text-[#374151]' },
-  { key: 'live_checkins', label: 'Live Check-ins', label_ja: 'チェックイン数', icon: UserCheck, color: 'text-[#16A34A]', positive: true },
-  { key: 'sessions_today', label: 'Sessions Today', label_ja: '本日のセッション', icon: MonitorPlay, color: 'text-[#2563EB]' },
-  { key: 'total_registered', label: 'Total Registered', label_ja: '登録者数', icon: Users, color: 'text-[#7C3AED]' },
+  { key: 'total_events', labelKey: 'total_events', icon: CalendarDays, color: 'text-[#374151]' },
+  { key: 'live_checkins', labelKey: 'live_checkins', icon: UserCheck, color: 'text-[#16A34A]', positive: true },
+  { key: 'sessions_today', labelKey: 'sessions_today', icon: MonitorPlay, color: 'text-[#2563EB]' },
+  { key: 'total_registered', labelKey: 'total_registered', icon: Users, color: 'text-[#7C3AED]' },
 ];
 
 function StatCard({ stat, value, index }) {
+  const { t } = useLanguage();
   const Icon = stat.icon;
   return (
     <motion.div
@@ -30,15 +32,14 @@ function StatCard({ stat, value, index }) {
         </div>
         {stat.positive && (
           <span className="flex items-center gap-1 text-[10px] font-semibold text-[#16A34A] bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-sm">
-            <ArrowUpRight size={10} /> LIVE
+            <ArrowUpRight size={10} /> {t('live').toUpperCase()}
           </span>
         )}
       </div>
       <div className="text-[32px] font-bold text-slate-900 leading-none mb-1.5">
         {value?.toLocaleString() ?? '—'}
       </div>
-      <div className="text-[13px] text-slate-500 font-medium">{stat.label}</div>
-      <div className="text-[11px] text-slate-400 mt-0.5">{stat.label_ja}</div>
+      <div className="text-[13px] text-slate-500 font-medium">{t(stat.labelKey)}</div>
     </motion.div>
   );
 }
@@ -54,13 +55,14 @@ function HierarchyRow({ event, depth = 0 }) {
     cancelled: 'bg-red-50 text-red-500 border-red-200',
   }[event.status] || 'bg-gray-100 text-gray-500 border-gray-200';
 
+  const { t, lang } = useLanguage();
   return (
     <>
       <tr
         className={`border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${depth > 0 ? 'bg-slate-50/50' : ''}`}
         onClick={() => hasChildren && setExpanded(!expanded)}
       >
-        <td className="px-4 py-3">
+        <td className="px-4 py-3" colSpan={depth === 0 ? 1 : 2}>
           <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 20}px` }}>
             {hasChildren ? (
               <span className="text-[#9CA3AF]">
@@ -74,16 +76,16 @@ function HierarchyRow({ event, depth = 0 }) {
             </span>
           </div>
         </td>
-        <td className="px-5 py-4 text-[13px] text-slate-500">{event.name_ja || event.title_ja || '—'}</td>
+        {depth === 0 && <td className="px-5 py-4 text-[13px] text-slate-500">—</td>}
         <td className="px-5 py-4">
-          <span className={`badge text-[11px] px-2.5 py-1 ${statusColor}`}>{event.status || '—'}</span>
+          <span className={`badge text-[11px] px-2.5 py-1 ${statusColor}`}>{t(event.status) || '—'}</span>
         </td>
         <td className="px-5 py-4 text-[13px] text-slate-500">
           {event.participant_count || event.attendee_count || event.session_count || '—'}
         </td>
         <td className="px-5 py-4 text-[12px] text-slate-400">
-          {event.start_date ? new Date(event.start_date).toLocaleDateString('en-GB') :
-           event.start_time ? new Date(event.start_time).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+          {event.start_date ? new Date(event.start_date).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-GB') :
+           event.start_time ? new Date(event.start_time).toLocaleString(lang === 'ja' ? 'ja-JP' : 'en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
         </td>
         <td className="px-4 py-3 text-[12px] text-[#6B7280]">{event.venue || event.venue_room || event.room || '—'}</td>
       </tr>
@@ -101,6 +103,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [hierarchy, setHierarchy] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     Promise.all([
@@ -139,7 +142,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Activity size={13} strokeWidth={1.5} className="text-[#6B7280]" />
-              <span className="text-[13px] font-medium text-[#374151]">Overall Check-in Rate</span>
+              <span className="text-[13px] font-medium text-[#374151]">{t('checkin_rate_desc')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[20px] font-bold text-[#111827]">{stats.checkin_rate}%</span>
@@ -166,12 +169,12 @@ export default function Dashboard() {
       >
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
-            <h3 className="text-[15px] font-semibold text-slate-900">Event Hierarchy</h3>
-            <p className="text-[12px] text-slate-500 mt-1">イベント階層 — Global Events → Sub-Events → Sessions → Participants</p>
+            <h3 className="text-[15px] font-semibold text-slate-900">{t('event_hierarchy')}</h3>
+            <p className="text-[12px] text-slate-500 mt-1">{t('event_hierarchy_desc')}</p>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="flex items-center gap-1 text-[10px] text-[#6B7280] border border-[#CBD5E1] px-2 py-1 rounded-sm bg-[#F9FAFB]">
-              <Clock size={10} /> Live
+              <Clock size={10} /> {t('live')}
             </span>
           </div>
         </div>
@@ -179,8 +182,8 @@ export default function Dashboard() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
-                {['Name / 名前', 'Japanese / 日本語', 'Status', 'Count', 'Date / Time', 'Venue/Room'].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                {[t('name'), '—', t('status'), t('count'), t('date_time'), t('venue_room')].map((h, idx) => (
+                  <th key={idx} className="px-5 py-3.5 text-left text-[12px] font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -188,7 +191,7 @@ export default function Dashboard() {
               {hierarchy.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-[13px] text-[#9CA3AF]">
-                    No events found. Create your first event to get started.
+                    {t('no_events_found')}
                   </td>
                 </tr>
               ) : (
@@ -203,7 +206,7 @@ export default function Dashboard() {
         {/* Recent check-ins */}
         {stats?.recent_checkins?.length > 0 && (
           <div className="border-t border-[#F3F4F6] px-5 py-4">
-            <h4 className="text-[12px] font-semibold text-[#374151] mb-3">Recent Check-ins</h4>
+            <h4 className="text-[12px] font-semibold text-[#374151] mb-3">{t('recent_checkins')}</h4>
             <div className="space-y-1.5">
               {stats.recent_checkins.map((c, i) => (
                 <motion.div
@@ -221,9 +224,9 @@ export default function Dashboard() {
                     c.role === 'speaker' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                     c.role === 'chairperson' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                     'bg-gray-100 text-gray-600 border-gray-200'
-                  }`}>{c.role}</span>
+                  }`}>{t(c.role)}</span>
                   <span className="text-[#9CA3AF]">{c.event_name}</span>
-                  <span className="text-[#9CA3AF]">{new Date(c.checkin_at_1).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-[#9CA3AF]">{new Date(c.checkin_at || c.checkin_at_1).toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
                 </motion.div>
               ))}
             </div>

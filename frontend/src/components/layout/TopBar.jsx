@@ -2,26 +2,37 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Search, Bell, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 
-const pageTitles = {
-  '/': 'Command Dashboard',
-  '/scanner': 'Check-in Scanner',
-  '/sessions': 'Session Attendance Engine',
-  '/participants': 'Participant Registry',
-  '/events': 'Event Management',
-  '/admin': 'Administration',
+const getPageTitle = (pathname, t) => {
+  const titles = {
+    '/': t('command_dashboard'),
+    '/scanner': t('checkin_scanner'),
+    '/sessions': t('session_attendance_engine'),
+    '/participants': t('participant_registry'),
+    '/events': t('event_management'),
+    '/admin': t('administration'),
+  };
+  return titles[pathname] || 'EventHQ';
 };
 
 export default function TopBar({ onMenuClick }) {
   const { user } = useAuth();
+  const { lang, setLang, t } = useLanguage();
   const location = useLocation();
-  const title = pageTitles[location.pathname] || 'EventHQ';
+  const title = getPageTitle(location.pathname, t);
+
+  const roleLabels = {
+    admin: t('admin_role'),
+    manager: t('manager'),
+    staff: t('staff'),
+  };
 
   const roleBadge = {
-    admin: { bg: 'bg-slate-800 text-white', label: 'ADMIN' },
-    manager: { bg: 'bg-blue-600 text-white', label: 'MANAGER' },
-    staff: { bg: 'bg-gray-500 text-white', label: 'STAFF' },
-  }[user?.role] || { bg: 'bg-gray-500 text-white', label: 'USER' };
+    admin: { bg: 'bg-slate-800 text-white' },
+    manager: { bg: 'bg-blue-600 text-white' },
+    staff: { bg: 'bg-gray-500 text-white' },
+  }[user?.role] || { bg: 'bg-gray-500 text-white' };
 
   return (
     <header className="h-14 border-b border-slate-200 bg-white flex items-center px-4 md:px-6 gap-3 md:gap-4 flex-shrink-0">
@@ -36,12 +47,32 @@ export default function TopBar({ onMenuClick }) {
         <h1 className="text-[14px] md:text-[15px] font-semibold text-slate-900 truncate">{title}</h1>
       </div>
 
+      {/* Language Toggle */}
+      <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+        <button
+          onClick={() => setLang('en')}
+          className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
+            lang === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          EN
+        </button>
+        <button
+          onClick={() => setLang('ja')}
+          className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
+            lang === 'ja' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          JP
+        </button>
+      </div>
+
       {/* Search - hidden on mobile */}
       <div className="relative hidden lg:block">
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" strokeWidth={1.5} />
         <input
           type="text"
-          placeholder="Search participants..."
+          placeholder={t('search_participants')}
           className="pl-8 pr-3 py-1.5 text-[12px] border border-slate-200 bg-slate-50 rounded-lg w-56 focus:outline-none focus:border-slate-400 transition-colors"
         />
       </div>
@@ -52,8 +83,8 @@ export default function TopBar({ onMenuClick }) {
       </button>
 
       {/* Role badge */}
-      <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full tracking-widest ${roleBadge.bg} shadow-sm`}>
-        {roleBadge.label}
+      <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full tracking-widest ${roleBadge.bg} shadow-sm uppercase`}>
+        {roleLabels[user?.role] || 'USER'}
       </div>
 
       {/* Avatar */}

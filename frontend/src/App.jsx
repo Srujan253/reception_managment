@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import AppLayout from './components/layout/AppLayout';
 import PublicRegistration from './pages/PublicRegistration';
 import Login from './pages/Login';
@@ -49,26 +50,28 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppRoutes />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: '#F9FAFB',
-              border: '1px solid #CBD5E1',
-              boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.08)',
-              borderRadius: '4px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '13px',
-              color: '#111827',
-            },
-            success: { iconTheme: { primary: '#16A34A', secondary: '#F9FAFB' } },
-            error: { iconTheme: { primary: '#DC2626', secondary: '#F9FAFB' } },
-          }}
-        />
-      </BrowserRouter>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AppRoutes />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#F9FAFB',
+                border: '1px solid #CBD5E1',
+                boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.08)',
+                borderRadius: '4px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                color: '#111827',
+              },
+              success: { iconTheme: { primary: '#16A34A', secondary: '#F9FAFB' } },
+              error: { iconTheme: { primary: '#DC2626', secondary: '#F9FAFB' } },
+            }}
+          />
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

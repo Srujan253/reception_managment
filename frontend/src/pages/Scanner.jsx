@@ -8,16 +8,18 @@ import {
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../context/LanguageContext';
 
-const MODES = [
-  { id: 'stage1', label: 'Event Arrival', label_ja: 'イベント受付', icon: '①' },
-  { id: 'stage2', label: 'Venue Check-in', label_ja: '会場受付', icon: '②' },
-  { id: 'stage3', label: 'Speaker Verify', label_ja: 'スピーカー確認', icon: '③' },
+const getModes = (t) => [
+  { id: 'stage1', label: t('event_arrival'), icon: '①' },
+  { id: 'stage2', label: t('venue_checkin'), icon: '②' },
+  { id: 'stage3', label: t('speaker_verify'), icon: '③' },
 ];
 
 const ENDPOINTS = { stage1: '/checkin/stage1', stage2: '/checkin/stage2', stage3: '/checkin/stage3' };
 
 function FeedbackModal({ result, onClose }) {
+  const { t } = useLanguage();
   if (!result) return null;
   const isSuccess = result.status === 'SUCCESS';
   const isAlreadyIn = result.status === 'ALREADY_CHECKED_IN';
@@ -47,7 +49,7 @@ function FeedbackModal({ result, onClose }) {
             </div>
             <div className="flex-1 min-w-0">
               <div className={`text-[13px] font-semibold mb-1 ${isSuccess ? 'text-green-700' : isAlreadyIn ? 'text-amber-700' : 'text-red-700'}`}>
-                {isSuccess ? 'Check-in Successful' : isAlreadyIn ? 'Already Checked In' : 'Check-in Failed'}
+                {isSuccess ? t('checkin_success') : isAlreadyIn ? t('already_checked_in') : t('checkin_failed')}
               </div>
               <div className="text-[12px] text-[#6B7280] mb-3">{result.message || result.error}</div>
               {result.participant && (
@@ -60,7 +62,7 @@ function FeedbackModal({ result, onClose }) {
                       result.participant.role === 'chairperson' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                       result.participant.role === 'vip' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                       'bg-gray-100 text-gray-600 border-gray-200'
-                    }`}>{result.participant.role}</span>
+                    }`}>{t(result.participant.role)}</span>
                   </div>
                   {result.participant.organization && (
                     <div className="flex items-center gap-2">
@@ -73,7 +75,7 @@ function FeedbackModal({ result, onClose }) {
                       <div key={s} className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-sm border ${
                         result.participant[`checkin_at_${s}`] ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-400 border-gray-200'
                       }`}>
-                        Stage {s} {result.participant[`checkin_at_${s}`] ? '✓' : '○'}
+                        {t('stage')} {s} {result.participant[`checkin_at_${s}`] ? '✓' : '○'}
                       </div>
                     ))}
                   </div>
@@ -85,7 +87,7 @@ function FeedbackModal({ result, onClose }) {
             onClick={onClose}
             className="mt-5 w-full py-2.5 text-[13px] font-medium border border-slate-200 rounded-xl bg-white shadow-sm hover:bg-slate-50 transition-all text-slate-700"
           >
-            Continue Scanning
+            {t('continue_scanning')}
           </button>
         </motion.div>
       </motion.div>
@@ -94,6 +96,7 @@ function FeedbackModal({ result, onClose }) {
 }
 
 export default function Scanner() {
+  const { t } = useLanguage();
   const [mode, setMode] = useState('stage1');
   const [inputMode, setInputMode] = useState('manual'); // 'qr' | 'manual'
   const [manualCode, setManualCode] = useState('');
@@ -102,6 +105,8 @@ export default function Scanner() {
   const [loading, setLoading] = useState(false);
   const scannerRef = useRef(null);
   const scannerInstanceRef = useRef(null);
+
+  const MODES = getModes(t);
 
   useEffect(() => {
     if (inputMode === 'qr') {
@@ -173,17 +178,17 @@ export default function Scanner() {
                 className={`flex items-center gap-2 px-4 py-2 text-[13px] rounded-xl border transition-all font-medium whitespace-nowrap
                   ${inputMode === 'manual' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
               >
-                <Keyboard size={14} strokeWidth={2} /> Manual Entry
+                <Keyboard size={14} strokeWidth={2} /> {t('manual_entry')}
               </button>
               <button
                 onClick={() => setInputMode('qr')}
                 className={`flex items-center gap-2 px-4 py-2 text-[13px] rounded-xl border transition-all font-medium whitespace-nowrap
                   ${inputMode === 'qr' ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
               >
-                <QrCode size={14} strokeWidth={2} /> Camera QR
+                <QrCode size={14} strokeWidth={2} /> {t('camera_qr')}
               </button>
               <div className={`ml-auto flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-sm border ${loading ? 'border-amber-200 bg-amber-50 text-amber-600' : 'border-green-200 bg-green-50 text-green-600'}`}>
-                <Wifi size={10} strokeWidth={1.5} /> {loading ? 'Processing...' : 'Active'}
+                <Wifi size={10} strokeWidth={1.5} /> {loading ? t('processing') : t('active')}
               </div>
             </div>
 
@@ -196,7 +201,7 @@ export default function Scanner() {
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && processCheckin(manualCode)}
-                    placeholder="Enter QR code or ticket number — Press Enter"
+                    placeholder={t('manual_entry_desc')}
                     className="w-full pl-11 pr-4 py-3.5 text-[14px] border border-slate-200 rounded-2xl bg-slate-50 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all font-mono shadow-inner"
                     disabled={loading}
                     autoFocus
@@ -212,7 +217,7 @@ export default function Scanner() {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <><CheckCircle2 size={14} strokeWidth={2} /> Process Check-in</>
+                    <><CheckCircle2 size={14} strokeWidth={2} /> {t('process_checkin')}</>
                   )}
                 </motion.button>
               </div>
@@ -226,7 +231,7 @@ export default function Scanner() {
                     <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-2 border border-slate-100 shadow-sm">
                       <QrCode size={20} className="text-slate-900" strokeWidth={1.5} />
                     </div>
-                    <p className="text-[12px] text-slate-400 font-medium">Position code within the frame</p>
+                    <p className="text-[12px] text-slate-400 font-medium">{t('scan_frame_desc')}</p>
                   </div>
                   
                   <div id="qr-reader" ref={scannerRef} className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm" />
@@ -242,9 +247,7 @@ export default function Scanner() {
               <div>
                 <div className="text-[13px] font-semibold text-[#111827]">{MODES.find(m => m.id === mode)?.label}</div>
                 <div className="text-[11px] text-[#9CA3AF] mt-0.5">
-                  {mode === 'stage1' && 'Validates participant registration. Marks event arrival timestamp.'}
-                  {mode === 'stage2' && 'Grants venue access. Requires Stage 1 to be completed first.'}
-                  {mode === 'stage3' && 'Verifies speakers, chairpersons, and VIPs. Requires Stage 1.'}
+                  {t(`${mode}_desc`)}
                 </div>
               </div>
             </div>
@@ -255,12 +258,12 @@ export default function Scanner() {
         <div className="lg:col-span-2">
           <div className="border border-slate-200 bg-white rounded-3xl overflow-hidden h-full shadow-sm flex flex-col">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-[#374151]">Validation History</span>
-              <span className="text-[11px] text-[#9CA3AF]">{history.length} scans</span>
+              <span className="text-[12px] font-semibold text-[#374151]">{t('validation_history')}</span>
+              <span className="text-[11px] text-[#9CA3AF]">{history.length} {t('scans')}</span>
             </div>
             <div className="divide-y divide-[#F3F4F6] max-h-96 overflow-y-auto">
               {history.length === 0 ? (
-                <div className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">No scans yet</div>
+                <div className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">{t('no_scans')}</div>
               ) : (
                 history.map((h, i) => (
                   <motion.div
@@ -284,7 +287,7 @@ export default function Scanner() {
                         {h.participant?.name || h.code || 'Unknown'}
                       </div>
                       <div className="text-[10px] text-[#9CA3AF] flex items-center gap-1">
-                        <Clock size={9} /> {h.time?.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        <Clock size={9} /> {h.time?.toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         <span className="mx-1">·</span>
                         {MODES.find(m => m.id === h.mode)?.label}
                       </div>

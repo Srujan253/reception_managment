@@ -7,11 +7,13 @@ import {
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 function EventModal({ event, onClose, onSaved }) {
+  const { t } = useLanguage();
   const isEdit = !!event?.id;
   const [form, setForm] = useState({
-    name: event?.name || '', name_ja: event?.name_ja || '',
+    name: event?.name || '',
     description: event?.description || '', start_date: event?.start_date?.slice(0, 10) || '',
     end_date: event?.end_date?.slice(0, 10) || '', venue: event?.venue || '',
     capacity: event?.capacity || '', status: event?.status || 'upcoming',
@@ -24,11 +26,11 @@ function EventModal({ event, onClose, onSaved }) {
     try {
       if (isEdit) await api.put(`/events/${event.id}`, form);
       else await api.post('/events', form);
-      toast.success(isEdit ? 'Event updated' : 'Event created');
+      toast.success(isEdit ? t('success') : t('success'));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save');
+      toast.error(err.response?.data?.error || t('error'));
     } finally {
       setLoading(false);
     }
@@ -46,38 +48,37 @@ function EventModal({ event, onClose, onSaved }) {
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? 'Edit Event' : 'New Event'}</h3>
+        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? t('edit_event') : t('new_event')}</h3>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            {f('Event Name *', 'name')}
-            {f('Name (Japanese)', 'name_ja')}
+          <div className="grid grid-cols-1 gap-3">
+            {f(`${t('event_name')} *`, 'name')}
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-[#374151] mb-1">Description</label>
+            <label className="block text-[11px] font-medium text-[#374151] mb-1">{t('event_description')}</label>
             <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2}
               className="w-full px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f('Start Date *', 'start_date', 'date')}
-            {f('End Date *', 'end_date', 'date')}
+            {f(`${t('start_date')} *`, 'start_date', 'date')}
+            {f(`${t('end_date')} *`, 'end_date', 'date')}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f('Venue', 'venue')}
-            {f('Capacity', 'capacity', 'number')}
+            {f(t('venue'), 'venue')}
+            {f(t('capacity'), 'capacity', 'number')}
           </div>
           {isEdit && (
             <div>
-              <label className="block text-[11px] font-medium text-[#374151] mb-1">Status</label>
+              <label className="block text-[11px] font-medium text-[#374151] mb-1">{t('status')}</label>
               <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
                 className="w-full px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B]">
-                {['upcoming', 'active', 'completed', 'cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+                {['upcoming', 'active', 'completed', 'cancelled'].map(s => <option key={s} value={s}>{t(s)}</option>)}
               </select>
             </div>
           )}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">{t('cancel')}</button>
             <button type="submit" disabled={loading} className="flex-1 py-2 text-[12px] bg-slate-900 text-white rounded-lg font-medium shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50">
-              {loading ? '...' : (isEdit ? 'Update' : 'Create Event')}
+              {loading ? '...' : (isEdit ? t('save') : t('create_event'))}
             </button>
           </div>
         </form>
@@ -87,9 +88,10 @@ function EventModal({ event, onClose, onSaved }) {
 }
 
 function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
+  const { t } = useLanguage();
   const isEdit = !!subEvent?.id;
   const [form, setForm] = useState({
-    name: subEvent?.name || '', name_ja: subEvent?.name_ja || '',
+    name: subEvent?.name || '',
     venue_room: subEvent?.venue_room || '', capacity: subEvent?.capacity || '',
   });
   const [loading, setLoading] = useState(false);
@@ -100,11 +102,11 @@ function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
     try {
       if (isEdit) await api.put(`/events/${eventId}/sub-events/${subEvent.id}`, { ...form, status: subEvent.status || 'upcoming' });
       else await api.post(`/events/${eventId}/sub-events`, form);
-      toast.success(isEdit ? 'Sub-event updated' : 'Sub-event created');
+      toast.success(isEdit ? t('success') : t('success'));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save');
+      toast.error(err.response?.data?.error || t('error'));
     } finally {
       setLoading(false);
     }
@@ -114,9 +116,12 @@ function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? 'Edit Sub-Event' : 'New Sub-Event'}</h3>
+        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? t('edit_sub_event') : t('new_sub_event')}</h3>
         <form onSubmit={handleSubmit} className="space-y-3">
-          {[['Name *', 'name'], ['Name (JP)', 'name_ja'], ['Room/Venue', 'venue_room']].map(([label, key]) => (
+          {[
+            [`${t('name')} *`, 'name'],
+            [t('room_location'), 'venue_room']
+          ].map(([label, key]) => (
             <div key={key}>
               <label className="block text-[11px] font-medium text-[#374151] mb-1">{label}</label>
               <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
@@ -124,14 +129,14 @@ function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
             </div>
           ))}
           <div>
-            <label className="block text-[11px] font-medium text-[#374151] mb-1">Capacity</label>
+            <label className="block text-[11px] font-medium text-[#374151] mb-1">{t('capacity')}</label>
             <input type="number" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))}
               className="w-full px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B]" />
           </div>
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">{t('cancel')}</button>
             <button type="submit" disabled={loading} className="flex-1 py-2 text-[12px] bg-slate-900 text-white rounded-lg font-medium shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50">
-              {loading ? '...' : 'Save'}
+              {loading ? '...' : t('save')}
             </button>
           </div>
         </form>
@@ -141,9 +146,10 @@ function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
 }
 
 function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
+  const { t } = useLanguage();
   const isEdit = !!session?.id;
   const [form, setForm] = useState({
-    title: session?.title || '', title_ja: session?.title_ja || '',
+    title: session?.title || '',
     speaker_name: session?.speaker_name || '', room: session?.room || '',
     start_time: session?.start_time ? new Date(session.start_time).toISOString().slice(0, 16) : '',
     end_time: session?.end_time ? new Date(session.end_time).toISOString().slice(0, 16) : '',
@@ -158,11 +164,11 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
       const payload = { ...form, event_id: eventId, sub_event_id: subEventId };
       if (isEdit) await api.put(`/sessions/${session.id}`, payload);
       else await api.post('/sessions', payload);
-      toast.success(isEdit ? 'Session updated' : 'Session created');
+      toast.success(isEdit ? t('session_updated') : t('session_created'));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save session');
+      toast.error(err.response?.data?.error || t('failed_save_session'));
     } finally {
       setLoading(false);
     }
@@ -180,27 +186,26 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? 'Edit Session' : 'New Session'}</h3>
+        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? t('edit_session') : t('new_session')}</h3>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            {f('Session Title *', 'title')}
-            {f('Title (Japanese)', 'title_ja')}
+          <div className="grid grid-cols-1 gap-3">
+            {f(`${t('session_title')} *`, 'title')}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f('Speaker Name', 'speaker_name')}
-            {f('Room / Location', 'room')}
+            {f(t('speaker_name'), 'speaker_name')}
+            {f(t('room_location'), 'room')}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f('Start Time *', 'start_time', 'datetime-local')}
-            {f('End Time *', 'end_time', 'datetime-local')}
+            {f(`${t('start_time')} *`, 'start_time', 'datetime-local')}
+            {f(`${t('end_time')} *`, 'end_time', 'datetime-local')}
           </div>
           <div className="w-1/2 pr-1.5">
-            {f('Capacity', 'capacity', 'number')}
+            {f(t('capacity'), 'capacity', 'number')}
           </div>
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">{t('cancel')}</button>
             <button type="submit" disabled={loading} className="flex-1 py-2 text-[12px] bg-slate-900 text-white rounded-lg font-medium shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50">
-              {loading ? '...' : (isEdit ? 'Update' : 'Create Session')}
+              {loading ? '...' : (isEdit ? t('save') : t('create_event'))}
             </button>
           </div>
         </form>
@@ -265,12 +270,12 @@ function EventRow({ event, onRefresh }) {
   };
 
   const handleDeleteEvent = async () => {
-    if (!confirm(`Delete "${event.name}"? This will also delete all sub-events and sessions.`)) return;
+    if (!confirm(`${t('delete_confirm')} "${event.name}"?`)) return;
     try {
       await api.delete(`/events/${event.id}`);
-      toast.success('Event deleted');
+      toast.success(t('success'));
       onRefresh();
-    } catch (err) { toast.error(err.response?.data?.error || 'Delete failed'); }
+    } catch (err) { toast.error(err.response?.data?.error || t('error')); }
   };
 
   return (
@@ -284,15 +289,14 @@ function EventRow({ event, onRefresh }) {
             <div className="flex-1 min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <span className="text-[14px] font-semibold text-[#111827] truncate">{event.name}</span>
-                <span className={`badge text-[10px] w-fit ${statusColor}`}>{event.status}</span>
+                <span className={`badge text-[10px] w-fit ${statusColor}`}>{t(event.status)}</span>
               </div>
-              {event.name_ja && <div className="text-[11px] text-[#9CA3AF] truncate">{event.name_ja}</div>}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-[11px] text-[#9CA3AF]">
-                <span className="flex items-center gap-1 shrink-0">📍 {event.venue || 'No venue'}</span>
+                <span className="flex items-center gap-1 shrink-0">📍 {event.venue || t('no_venue')}</span>
                 <span className="flex items-center gap-1 shrink-0">👥 {event.participant_count || 0}</span>
                 <span className="flex items-center gap-1 shrink-0">📁 {event.sub_event_count || 0}</span>
                 <span className="hidden sm:inline text-slate-300">|</span>
-                <span className="shrink-0">{new Date(event.start_date).toLocaleDateString('en-GB')} – {new Date(event.end_date).toLocaleDateString('en-GB')}</span>
+                <span className="shrink-0">{new Date(event.start_date).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-GB')} – {new Date(event.end_date).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-GB')}</span>
               </div>
             </div>
             {expanded ? <ChevronDown size={14} strokeWidth={1.5} className="text-[#9CA3AF]" /> : <ChevronRight size={14} strokeWidth={1.5} className="text-[#9CA3AF]" />}
@@ -301,12 +305,12 @@ function EventRow({ event, onRefresh }) {
           {isManager && (
             <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
               <button onClick={() => setModal({ type: 'subevent', data: null })}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6] transition-all">
-                <Plus size={11} strokeWidth={2} /> Sub-Event
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] border border-[#CBD5E1] rounded-sm hover:bg-[#F9FAFB] transition-all">
+                <Plus size={11} strokeWidth={2} /> {t('sub_event')}
               </button>
               <div className="flex items-center gap-2">
                 <button onClick={() => setModal({ type: 'event', data: event })}
-                  className="p-1.5 border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6] transition-all">
+                  className="p-1.5 border border-[#CBD5E1] rounded-sm hover:bg-[#F9FAFB] transition-all">
                   <Edit2 size={12} strokeWidth={1.5} className="text-[#6B7280]" />
                 </button>
                 <button onClick={handleDeleteEvent}
@@ -332,7 +336,7 @@ function EventRow({ event, onRefresh }) {
                   <div className="w-4 h-4 border border-[#CBD5E1] border-t-[#64748B] rounded-full animate-spin mx-auto" />
                 </div>
               ) : subEvents.length === 0 ? (
-                <div className="px-5 py-4 text-[12px] text-[#9CA3AF] text-center">No sub-events. Add one above.</div>
+                <div className="px-5 py-4 text-[12px] text-[#9CA3AF] text-center">{t('no_sub_events')}</div>
               ) : (
                 <div className="px-5 py-3 space-y-4">
                   {subEvents.map(se => (
@@ -341,22 +345,22 @@ function EventRow({ event, onRefresh }) {
                         <div className="w-0.5 h-6 bg-[#111827] rounded-full" />
                         <div className="flex-1">
                           <div className="text-[12px] font-semibold text-[#111827]">{se.name}</div>
-                          <div className="text-[10px] text-[#9CA3AF]">{se.venue_room} · Cap {se.capacity}</div>
+                          <div className="text-[10px] text-[#9CA3AF]">{se.venue_room} · {t('capacity_short')} {se.capacity}</div>
                         </div>
                         {isManager && (
                           <div className="flex items-center gap-1.5 pr-3">
                             <button onClick={() => setModal({ type: 'session', data: null, subEventId: se.id })}
                               className="flex items-center gap-1 px-2 py-1 text-[10px] bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-all">
-                              <Plus size={10} /> Session
+                              <Plus size={10} /> {t('session')}
                             </button>
                             <button onClick={() => setModal({ type: 'subevent', data: se })}
                               className="p-1.5 border border-[#F3F4F6] rounded-sm hover:bg-white hover:border-[#CBD5E1] transition-all">
                               <Edit2 size={11} strokeWidth={1.5} className="text-[#9CA3AF]" />
                             </button>
                             <button onClick={async () => {
-                              if (!confirm('Delete sub-event?')) return;
-                              try { await api.delete(`/events/${event.id}/sub-events/${se.id}`); setSubEvents(s => s.filter(x => x.id !== se.id)); toast.success('Deleted'); }
-                              catch (err) { toast.error(err.response?.data?.error || 'Delete failed'); }
+                              if (!confirm(t('delete_confirm'))) return;
+                              try { await api.delete(`/events/${event.id}/sub-events/${se.id}`); setSubEvents(s => s.filter(x => x.id !== se.id)); toast.success(t('success')); }
+                              catch (err) { toast.error(err.response?.data?.error || t('error')); }
                             }} className="p-1.5 border border-[#F3F4F6] rounded-sm hover:bg-red-50 hover:border-red-200 transition-all">
                               <Trash2 size={11} strokeWidth={1.5} className="text-[#CBD5E1] hover:text-red-500" />
                             </button>
@@ -373,7 +377,7 @@ function EventRow({ event, onRefresh }) {
                                 <div className="text-[11px] font-medium text-[#374151]">{session.title}</div>
                                 <div className="text-[9px] text-[#9CA3AF]">
                                   {session.speaker_name && `${session.speaker_name} · `}
-                                  {new Date(session.start_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(session.start_time).toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
                                 </div>
                               </div>
                               {isManager && (
@@ -383,12 +387,12 @@ function EventRow({ event, onRefresh }) {
                                     <Edit2 size={10} />
                                   </button>
                                   <button onClick={async () => {
-                                    if (!confirm('Delete session?')) return;
+                                    if (!confirm(t('delete_confirm'))) return;
                                     try {
                                       await api.delete(`/sessions/${session.id}`);
-                                      toast.success('Session deleted');
+                                      toast.success(t('success'));
                                       refreshSubDetails();
-                                    } catch { toast.error('Delete failed'); }
+                                    } catch { toast.error(t('error')); }
                                   }} className="p-1 text-[#9CA3AF] hover:text-red-500">
                                     <Trash2 size={10} />
                                   </button>
@@ -397,7 +401,7 @@ function EventRow({ event, onRefresh }) {
                             </div>
                           ))
                         ) : (
-                          <div className="text-[10px] text-[#9CA3AF] text-center py-1">No sessions allocated</div>
+                          <div className="text-[10px] text-[#9CA3AF] text-center py-1">{t('no_sessions')}</div>
                         )}
                       </div>
                     </div>
@@ -439,7 +443,7 @@ export default function Events() {
     try {
       const res = await api.get('/events');
       setEvents(res.data);
-    } catch { toast.error('Failed to load events'); }
+    } catch { toast.error(t('error')); }
     finally { setLoading(false); }
   };
 
@@ -449,13 +453,13 @@ export default function Events() {
     <div className="max-w-5xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[14px] font-semibold text-[#111827]">Events ({events.length})</h2>
-          <p className="text-[11px] text-[#9CA3AF]">Manage events and sub-events / イベント管理</p>
+          <h2 className="text-[14px] font-semibold text-[#111827]">{t('events')} ({events.length})</h2>
+          <p className="text-[11px] text-[#9CA3AF]">{t('event_management')}</p>
         </div>
         {isManager && (
           <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={() => setShowCreate(true)}
             className="flex items-center gap-1.5 px-3 py-2 text-[12px] bg-slate-900 text-white rounded-lg shadow-sm hover:bg-slate-800 transition-all font-medium">
-            <Plus size={12} strokeWidth={2} /> New Event
+            <Plus size={12} strokeWidth={2} /> {t('new_event')}
           </motion.button>
         )}
       </div>
@@ -467,8 +471,8 @@ export default function Events() {
       ) : events.length === 0 ? (
         <div className="border border-slate-200 border-dashed bg-slate-50 rounded-2xl p-12 text-center shadow-sm">
           <CalendarDays size={28} strokeWidth={1} className="mx-auto text-slate-400 mb-3" />
-          <p className="text-[13px] text-slate-500 mb-4">No events yet. Create your first event.</p>
-          {isManager && <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-slate-900 text-white text-[12px] rounded-lg shadow-sm font-medium hover:bg-slate-800 transition-all">Create Event</button>}
+          <p className="text-[13px] text-slate-500 mb-4">{t('no_active_events')}</p>
+          {isManager && <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-slate-900 text-white text-[12px] rounded-lg shadow-sm font-medium hover:bg-slate-800 transition-all">{t('create_event')}</button>}
         </div>
       ) : (
         <motion.div className="space-y-3" initial="hidden" animate="visible"

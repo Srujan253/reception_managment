@@ -7,6 +7,7 @@ import {
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const ROLES = ['all', 'participant', 'speaker', 'chairperson', 'vip', 'staff'];
 const ROLE_STYLES = {
@@ -18,7 +19,8 @@ const ROLE_STYLES = {
 };
 
 function AddParticipantModal({ events, onClose, onAdded }) {
-  const [form, setForm] = useState({ event_id: events[0]?.id || '', name: '', name_ja: '', email: '', organization: '', role: 'participant', ticket_number: '' });
+  const { t } = useLanguage();
+  const [form, setForm] = useState({ event_id: events[0]?.id || '', name: '', email: '', organization: '', role: 'participant', ticket_number: '' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -27,11 +29,11 @@ function AddParticipantModal({ events, onClose, onAdded }) {
     setLoading(true);
     try {
       await api.post('/participants', form);
-      toast.success('Participant added');
+      toast.success(t('success'));
       onAdded();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to add');
+      toast.error(err.response?.data?.error || t('error'));
     } finally {
       setLoading(false);
     }
@@ -67,19 +69,18 @@ function AddParticipantModal({ events, onClose, onAdded }) {
         className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-xl"
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">Add Participant</h3>
+        <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{t('add_participant')}</h3>
         <form onSubmit={handleSubmit} className="space-y-3">
-          {field('Event', 'event_id', 'text', events.map(e => <option key={e.id} value={e.id}>{e.name}</option>))}
-          {field('Full Name *', 'name')}
-          {field('Name (Japanese)', 'name_ja')}
-          {field('Email', 'email', 'email')}
-          {field('Organization', 'organization')}
-          {field('Role', 'role', 'text', ROLES.filter(r => r !== 'all').map(r => <option key={r} value={r}>{r}</option>))}
-          {field('Ticket Number', 'ticket_number')}
+          {field(t('select_event'), 'event_id', 'text', events.map(e => <option key={e.id} value={e.id}>{e.name}</option>))}
+          {field(`${t('name')} *`, 'name')}
+          {field(t('email'), 'email', 'email')}
+          {field(t('organization'), 'organization')}
+          {field(t('role'), 'role', 'text', ROLES.filter(r => r !== 'all').map(r => <option key={r} value={r}>{t(r)}</option>))}
+          {field(t('ticket_no'), 'ticket_number')}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">{t('cancel')}</button>
             <button type="submit" disabled={loading} className="flex-1 py-2 text-[12px] bg-slate-900 text-white rounded-lg font-medium shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50">
-              {loading ? '...' : 'Add Participant'}
+              {loading ? '...' : t('add_participant')}
             </button>
           </div>
         </form>
@@ -90,6 +91,7 @@ function AddParticipantModal({ events, onClose, onAdded }) {
 
 export default function Participants() {
   const { isManager } = useAuth();
+  const { lang, t } = useLanguage();
   const [data, setData] = useState({ participants: [], total: 0, pages: 1 });
   const [events, setEvents] = useState([]);
   const [filters, setFilters] = useState({ search: '', role: 'all', event_id: '', page: 1, limit: 50 });
@@ -119,38 +121,38 @@ export default function Participants() {
       const res = await api.get('/participants', { params });
       setData(res.data);
     } catch (err) {
-      toast.error('Failed to load participants');
+      toast.error(t('error'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this participant?')) return;
+    if (!confirm(t('delete_confirm'))) return;
     try {
       await api.delete(`/participants/${id}`);
-      toast.success('Deleted');
+      toast.success(t('success'));
       loadParticipants();
     } catch (err) {
-      toast.error('Failed to delete');
+      toast.error(t('error'));
     }
   };
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!filters.event_id) { toast.error('Select an event first to import'); return; }
+    if (!filters.event_id) { toast.error(t('select_event')); return; }
     setCsvLoading(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('event_id', filters.event_id);
     try {
       const res = await api.post('/participants/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      toast.success(`Imported ${res.data.success} participants`);
-      if (res.data.errors?.length > 0) toast.error(`${res.data.errors.length} rows failed`);
+      toast.success(t('success'));
+      if (res.data.errors?.length > 0) toast.error(t('error'));
       loadParticipants();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Import failed');
+      toast.error(err.response?.data?.error || t('error'));
     } finally {
       setCsvLoading(false);
       fileRef.current.value = '';
@@ -158,7 +160,7 @@ export default function Participants() {
   };
 
   const handleExport = async () => {
-    if (!filters.event_id) { toast.error('Select an event to export'); return; }
+    if (!filters.event_id) { toast.error(t('select_event')); return; }
     try {
       const link = document.createElement('a');
       link.href = `/api/participants/export/${filters.event_id}`;
@@ -166,8 +168,8 @@ export default function Participants() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('Export started');
-    } catch { toast.error('Export failed'); }
+      toast.success(t('success'));
+    } catch { toast.error(t('error')); }
   };
 
   const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val, page: key !== 'page' ? 1 : val }));
@@ -181,7 +183,7 @@ export default function Participants() {
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" strokeWidth={1.5} />
           <input
             type="text"
-            placeholder="Search name, email, QR code..."
+            placeholder={t('search_participants')}
             value={filters.search}
             onChange={(e) => setFilter('search', e.target.value)}
             className="w-full pl-8 pr-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
@@ -194,7 +196,7 @@ export default function Participants() {
           onChange={(e) => setFilter('role', e.target.value)}
           className="px-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
         >
-          {ROLES.map(r => <option key={r} value={r}>{r === 'all' ? 'All Roles' : r}</option>)}
+          {ROLES.map(r => <option key={r} value={r}>{r === 'all' ? t('all_roles') : t(r)}</option>)}
         </select>
 
         {/* Event filter */}
@@ -203,7 +205,7 @@ export default function Participants() {
           onChange={(e) => setFilter('event_id', e.target.value)}
           className="px-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all max-w-48 text-slate-700"
         >
-          <option value="">All Events</option>
+          <option value="">{t('events')}</option>
           {events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
         </select>
 
@@ -213,7 +215,7 @@ export default function Participants() {
           onChange={(e) => setFilter('limit', parseInt(e.target.value))}
           className="px-3 py-2 text-[12px] border border-slate-200 rounded-lg shadow-sm bg-white focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all text-slate-700"
         >
-          {[25, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
+          {[25, 50, 100].map(n => <option key={n} value={n}>{n} / {t('page_label')}</option>)}
         </select>
 
         <div className="flex items-center gap-2 justify-between w-full sm:w-auto mt-2 sm:mt-0">
@@ -225,13 +227,13 @@ export default function Participants() {
                 disabled={csvLoading}
                 className="flex items-center gap-1.5 px-3 py-2 text-[12px] border border-slate-200 rounded-lg bg-white shadow-sm hover:bg-slate-50 transition-all font-medium disabled:opacity-50 text-slate-700"
               >
-                <Upload size={14} strokeWidth={1.5} /> {csvLoading ? 'Importing...' : 'Import'}
+                <Upload size={14} strokeWidth={1.5} /> {csvLoading ? t('importing') : t('import_csv')}
               </button>
               <button
                 onClick={handleExport}
                 className="flex items-center gap-1.5 px-3 py-2 text-[12px] border border-slate-200 rounded-lg bg-white shadow-sm hover:bg-slate-50 transition-all font-medium text-slate-700"
               >
-                <Download size={14} strokeWidth={1.5} /> Export
+                <Download size={14} strokeWidth={1.5} /> {t('export_csv')}
               </button>
               <motion.button
                 whileHover={{ scale: 1.01 }}
@@ -239,7 +241,7 @@ export default function Participants() {
                 onClick={() => setShowAdd(true)}
                 className="flex items-center gap-1.5 px-3 py-2 text-[12px] bg-slate-900 text-white rounded-lg shadow-sm hover:bg-slate-800 transition-all font-medium"
               >
-                <Plus size={14} strokeWidth={2} /> Add
+                <Plus size={14} strokeWidth={2} /> {t('add_participant')}
               </motion.button>
             </>
           )}
@@ -252,7 +254,7 @@ export default function Participants() {
           <div className="flex items-center gap-2">
             <Users size={13} strokeWidth={1.5} className="text-[#6B7280]" />
             <span className="text-[12px] font-semibold text-[#374151]">
-              {data.total.toLocaleString()} participants · Page {filters.page} of {data.pages}
+              {data.total.toLocaleString()} {t('participants')} · {t('page_label')} {filters.page} / {data.pages}
             </span>
           </div>
         </div>
@@ -261,8 +263,8 @@ export default function Participants() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
-                {['Name / 名前', 'Email', 'Organization', 'Role / 役割', 'QR Code', 'Stage 1', 'Stage 2', 'Stage 3', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-2.5 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
+                {[t('name'), t('email'), t('organization'), t('role'), t('qr_code_label'), `${t('stage')} 1`, `${t('stage')} 2`, `${t('stage')} 3`, t('actions')].map((h, i) => (
+                  <th key={i} className="px-4 py-2.5 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -276,7 +278,7 @@ export default function Participants() {
               ) : data.participants.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-12 text-center text-[12px] text-[#9CA3AF]">
-                    No participants found. Import a CSV or add manually.
+                    {t('no_participants')}
                   </td>
                 </tr>
               ) : (
@@ -295,7 +297,6 @@ export default function Participants() {
                         </div>
                         <div>
                           <div className="text-[12px] font-medium text-[#374151]">{p.name}</div>
-                          {p.name_ja && <div className="text-[10px] text-[#9CA3AF]">{p.name_ja}</div>}
                         </div>
                       </div>
                     </td>
@@ -310,7 +311,7 @@ export default function Participants() {
                         {p[`checkin_at_${s}`] ? (
                           <div className="flex items-center gap-1 text-[10px] text-green-600">
                             <UserCheck size={10} />
-                            {new Date(p[`checkin_at_${s}`]).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(p[`checkin_at_${s}`]).toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         ) : (
                           <span className="text-[10px] text-[#CBD5E1]">—</span>
@@ -338,7 +339,7 @@ export default function Participants() {
         {data.pages > 1 && (
           <div className="px-4 py-3 border-t border-[#F3F4F6] flex items-center justify-between">
             <span className="text-[11px] text-[#9CA3AF]">
-              Showing {((filters.page - 1) * filters.limit) + 1}–{Math.min(filters.page * filters.limit, data.total)} of {data.total.toLocaleString()}
+              {t('showing')} {((filters.page - 1) * filters.limit) + 1}–{Math.min(filters.page * filters.limit, data.total)} {t('of')} {data.total.toLocaleString()}
             </span>
             <div className="flex items-center gap-1">
               <button

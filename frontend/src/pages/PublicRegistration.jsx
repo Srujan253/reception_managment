@@ -4,8 +4,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PublicRegistration() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,25 +23,24 @@ export default function PublicRegistration() {
         setEvents(res.data);
         if (res.data.length > 0) setForm(f => ({ ...f, event_id: res.data[0].id }));
       } catch (err) {
-        toast.error('Failed to load active events');
+        toast.error(t('error'));
       } finally {
         setLoading(false);
       }
     };
     loadEvents();
-  }, []);
+  }, [t]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
       const res = await api.post('/participants/register', form);
-      // Attach event name for display
-      const eventName = events.find(ev => ev.id === parseInt(form.event_id))?.name || 'Event';
+      const eventName = events.find(ev => ev.id === parseInt(form.event_id))?.name || t('event_name');
       setRegisteredUser({ ...res.data, event_name: eventName });
-      toast.success('Registration successful!');
+      toast.success(t('success'));
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed');
+      toast.error(err.response?.data?.error || t('error'));
     } finally {
       setSubmitting(false);
     }
@@ -53,17 +54,17 @@ export default function PublicRegistration() {
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
               <CheckCircle2 className="text-white" size={32} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-1">Registration Complete!</h2>
-            <p className="text-emerald-50 text-sm">Here is your digital ticket</p>
+            <h2 className="text-2xl font-bold text-white mb-1">{t('registration_complete')}</h2>
+            <p className="text-emerald-50 text-sm">{t('digital_ticket_ready')}</p>
           </div>
           
           <div className="p-8 text-center">
             <div className="mb-6">
-              <h3 className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-1">Event</h3>
+              <h3 className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-1">{t('events')}</h3>
               <p className="text-lg font-semibold text-slate-900">{registeredUser.event_name}</p>
             </div>
             <div className="mb-8">
-              <h3 className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-1">Attendee</h3>
+              <h3 className="text-slate-500 text-xs font-bold tracking-widest uppercase mb-1">{t('name')}</h3>
               <p className="text-lg font-semibold text-slate-900">{registeredUser.name}</p>
             </div>
             
@@ -78,14 +79,14 @@ export default function PublicRegistration() {
             </div>
             
             <p className="text-sm text-slate-500 mb-8">
-              Please take a screenshot of this QR code and present it to staff at the entrance.
+              {t('screenshot_qr')}
             </p>
 
             <button
               onClick={() => { setRegisteredUser(null); setForm({ ...form, name: '', email: '' }); }}
               className="text-slate-600 font-medium hover:text-slate-900 transition-colors text-sm"
             >
-              Register another person
+              {t('register_another')}
             </button>
           </div>
         </div>
@@ -100,12 +101,12 @@ export default function PublicRegistration() {
           onClick={() => navigate('/login')}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-6 text-sm font-medium"
         >
-          <ArrowLeft size={16} /> Back to Login
+          <ArrowLeft size={16} /> {t('back_to_login')}
         </button>
 
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Event Registration</h1>
-          <p className="text-slate-500 mb-8 text-sm">Please fill out your details to receive your digital ticket.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">{t('participant_registration')}</h1>
+          <p className="text-slate-500 mb-8 text-sm">{t('fill_details')}</p>
 
           {loading ? (
             <div className="flex justify-center py-12">
@@ -113,12 +114,12 @@ export default function PublicRegistration() {
             </div>
           ) : events.length === 0 ? (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-center text-sm">
-              There are currently no active events accepting registrations.
+              {t('no_active_events')}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Event</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('select_event')}</label>
                 <select
                   value={form.event_id}
                   onChange={e => setForm({ ...form, event_id: e.target.value })}
@@ -132,7 +133,7 @@ export default function PublicRegistration() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('name')}</label>
                 <input
                   type="text"
                   value={form.name}
@@ -144,7 +145,7 @@ export default function PublicRegistration() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email Address (Optional)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('email')}</label>
                 <input
                   type="email"
                   value={form.email}
@@ -162,7 +163,7 @@ export default function PublicRegistration() {
                 {submitting ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  'Complete Registration'
+                  t('complete_registration')
                 )}
               </button>
             </form>

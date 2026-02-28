@@ -6,25 +6,34 @@ import {
   MonitorPlay, ShieldCheck, LogOut, Zap, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { AnimatePresence } from 'framer-motion';
 
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/scanner', icon: QrCode, label: 'Scanner' },
-  { to: '/sessions', icon: MonitorPlay, label: 'Sessions' },
-  { to: '/participants', icon: Users, label: 'Participants' },
-  { to: '/events', icon: CalendarDays, label: 'Events', managerOnly: true },
-  { to: '/admin', icon: ShieldCheck, label: 'Admin', adminOnly: true },
+const getNavItems = (t) => [
+  { to: '/', icon: LayoutDashboard, label: t('dashboard'), end: true },
+  { to: '/scanner', icon: QrCode, label: t('scanner') },
+  { to: '/sessions', icon: MonitorPlay, label: t('sessions') },
+  { to: '/participants', icon: Users, label: t('participants') },
+  { to: '/events', icon: CalendarDays, label: t('events'), managerOnly: true },
+  { to: '/admin', icon: ShieldCheck, label: t('admin'), adminOnly: true },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user, logout, isAdmin, isManager } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
+  const navItems = getNavItems(t);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
     if (onClose) onClose();
+  };
+
+  const roleLabels = {
+    admin: t('admin_role'),
+    manager: t('manager'),
+    staff: t('staff'),
   };
 
   const roleBadgeColor = {
@@ -43,7 +52,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
           <div>
             <div className="font-semibold text-[#111827] text-sm leading-none">EventHQ</div>
-            <div className="text-[10px] text-[#9CA3AF] mt-0.5">Enterprise</div>
+            <div className="text-[10px] text-[#9CA3AF] mt-0.5">{t('enterprise')}</div>
           </div>
         </div>
         <button 
@@ -93,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="text-[12px] font-medium text-[#111827] truncate">{user?.name}</div>
           <div className="text-[11px] text-[#9CA3AF] truncate">{user?.email}</div>
           <span className={`mt-1 inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide border rounded-sm ${roleBadgeColor}`}>
-            {user?.role}
+            {roleLabels[user?.role] || 'USER'}
           </span>
         </div>
         <button
@@ -101,7 +110,7 @@ export default function Sidebar({ isOpen, onClose }) {
           className="flex items-center gap-2 w-full px-3 py-2 text-[13px] text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
         >
           <LogOut size={14} strokeWidth={1.5} />
-          <span>Sign out</span>
+          <span>{t('sign_out')}</span>
         </button>
       </div>
     </div>

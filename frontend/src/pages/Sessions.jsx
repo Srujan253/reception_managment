@@ -6,8 +6,10 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../context/LanguageContext';
 
 function GuardBadge({ expiresAt }) {
+  const { lang } = useLanguage();
   const [remaining, setRemaining] = useState(0);
 
   useEffect(() => {
@@ -28,12 +30,13 @@ function GuardBadge({ expiresAt }) {
   return (
     <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-sm border bg-amber-50 text-amber-700 border-amber-200 font-semibold">
       <Timer size={9} />
-      {mins}:{secs.toString().padStart(2, '0')} left
+      {mins}:{secs.toString().padStart(2, '0')} {lang === 'ja' ? '残り' : 'left'}
     </span>
   );
 }
 
 function GuardWarningModal({ show, onClose, onForce, guardInfo }) {
+  const { t } = useLanguage();
   return (
     <AnimatePresence>
       {show && (
@@ -54,31 +57,30 @@ function GuardWarningModal({ show, onClose, onForce, guardInfo }) {
                 <Shield size={18} className="text-amber-600" strokeWidth={1.5} />
               </div>
               <div>
-                <div className="text-[13px] font-semibold text-[#111827]">3-Minute Guard Active</div>
+                <div className="text-[13px] font-semibold text-[#111827]">{t('guard_active_title')}</div>
                 <div className="text-[12px] text-[#6B7280] mt-1">
-                  Minimum attendance period not completed.
+                  {t('guard_active_desc')}
                   {guardInfo?.remaining_seconds && (
-                    <span className="font-semibold text-amber-600"> {guardInfo.remaining_seconds}s remaining.</span>
+                    <span className="font-semibold text-amber-600"> {guardInfo.remaining_seconds}s {t('remaining')}.</span>
                   )}
                 </div>
               </div>
             </div>
             <p className="text-[11px] text-[#9CA3AF] mb-4 leading-relaxed">
-              This participant checked in less than 3 minutes ago. 出席期間が未達です。
-              Administrative override is available for emergencies only.
+              {t('guard_long_desc')}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={onClose}
                 className="flex-1 py-2 text-[12px] border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6] transition-all font-medium"
               >
-                Dismiss
+                {t('dismiss')}
               </button>
               <button
                 onClick={onForce}
                 className="flex-1 py-2 text-[12px] bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <AlertTriangle size={12} /> Force Exit
+                <AlertTriangle size={12} /> {t('force_exit')}
               </button>
             </div>
           </motion.div>
@@ -89,6 +91,7 @@ function GuardWarningModal({ show, onClose, onForce, guardInfo }) {
 }
 
 export default function Sessions() {
+  const { t } = useLanguage();
   const [sessions, setSessions] = useState([]);
   const [selected, setSelected] = useState(null);
   const [sessionDetail, setSessionDetail] = useState(null);
@@ -117,7 +120,7 @@ export default function Sessions() {
       setSessions(res.data);
       if (res.data.length > 0 && !selected) setSelected(res.data[0]);
     } catch (err) {
-      toast.error('Failed to load sessions');
+      toast.error(t('failed_load_sessions'));
     } finally {
       setLoading(false);
     }
@@ -129,7 +132,7 @@ export default function Sessions() {
       const res = await api.get(`/sessions/${id}`);
       setSessionDetail(res.data);
     } catch (err) {
-      if (!silent) toast.error('Failed to load session details');
+      if (!silent) toast.error(t('failed_load_details'));
     } finally {
       setDetailLoading(false);
     }
@@ -138,7 +141,7 @@ export default function Sessions() {
   const handleCheckout = async (participantId, force = false) => {
     try {
       await api.post(`/sessions/${selected.id}/exit`, { participant_id: participantId, force });
-      toast.success('Checked out successfully');
+      toast.success(t('checkout_success'));
       setGuardWarning({ show: false, participantId: null, info: null });
       loadSessionDetail(selected.id);
     } catch (err) {
@@ -146,7 +149,7 @@ export default function Sessions() {
       if (data?.error === 'GUARD_ACTIVE') {
         setGuardWarning({ show: true, participantId, info: data });
       } else {
-        toast.error(data?.error || 'Checkout failed');
+        toast.error(data?.error || t('checkout_failed'));
       }
     }
   };
@@ -170,11 +173,11 @@ export default function Sessions() {
         <div className="col-span-2">
           <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
             <div className="px-4 py-3 border-b border-[#F3F4F6]">
-              <span className="text-[12px] font-semibold text-[#374151]">Sessions ({sessions.length})</span>
+              <span className="text-[12px] font-semibold text-[#374151]">{t('sessions')} ({sessions.length})</span>
             </div>
             <div className="divide-y divide-[#F3F4F6] max-h-[600px] overflow-y-auto">
               {sessions.length === 0 ? (
-                <div className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">No sessions found</div>
+                <div className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">{t('no_sessions_found')}</div>
               ) : sessions.map((s) => (
                 <button
                   key={s.id}
@@ -184,9 +187,9 @@ export default function Sessions() {
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <span className="text-[12px] font-medium text-[#374151] leading-snug">{s.title}</span>
-                    <span className={`badge text-[9px] flex-shrink-0 ${statusColor[s.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>{s.status}</span>
+                    <span className={`badge text-[9px] flex-shrink-0 ${statusColor[s.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>{t(s.status)}</span>
                   </div>
-                  <div className="text-[10px] text-[#9CA3AF]">{s.room} · {s.attendee_count} attending</div>
+                  <div className="text-[10px] text-[#9CA3AF]">{s.room} · {s.attendee_count} {t('attending')}</div>
                   <div className="text-[10px] text-[#9CA3AF]">
                     {new Date(s.start_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} –
                     {new Date(s.end_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
@@ -202,7 +205,7 @@ export default function Sessions() {
           {!sessionDetail ? (
             <div className="border border-slate-200 bg-slate-50 rounded-2xl p-12 text-center border-dashed">
               <MonitorPlay size={24} strokeWidth={1} className="mx-auto text-slate-400 mb-3" />
-              <p className="text-[13px] text-slate-500">Select a session to monitor</p>
+              <p className="text-[13px] text-slate-500">{t('select_session_monitor')}</p>
             </div>
           ) : (
             <>
@@ -211,18 +214,17 @@ export default function Sessions() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-[16px] font-semibold text-[#111827]">{sessionDetail.title}</h2>
-                    <p className="text-[12px] text-[#9CA3AF] mt-0.5">{sessionDetail.title_ja}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-[11px] text-[#6B7280]">📍 {sessionDetail.room || 'No room'}</span>
-                      <span className="text-[11px] text-[#6B7280]">👤 {sessionDetail.speaker_name || 'No speaker'}</span>
-                      <span className={`badge text-[10px] ${statusColor[sessionDetail.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>{sessionDetail.status}</span>
+                      <span className="text-[11px] text-[#6B7280]">📍 {sessionDetail.room || t('no_room')}</span>
+                      <span className="text-[11px] text-[#6B7280]">👤 {sessionDetail.speaker_name || t('no_speaker')}</span>
+                      <span className={`badge text-[10px] ${statusColor[sessionDetail.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>{t(sessionDetail.status)}</span>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-[22px] font-bold text-[#111827]">
                       {sessionDetail.attendees?.filter(a => !a.exit_time).length || 0}
                     </div>
-                    <div className="text-[11px] text-[#9CA3AF]">/ {sessionDetail.capacity} capacity</div>
+                    <div className="text-[11px] text-[#9CA3AF]">/ {sessionDetail.capacity} {t('capacity')}</div>
                     <div className="w-24 h-1.5 bg-[#F3F4F6] border border-[#CBD5E1] rounded-sm overflow-hidden mt-2">
                       <div
                         className="h-full bg-[#111827]"
@@ -237,21 +239,21 @@ export default function Sessions() {
               <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
                 <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
                   <span className="text-[12px] font-semibold text-[#374151] flex items-center gap-2">
-                    <Users size={13} strokeWidth={1.5} /> Live Attendees
+                    <Users size={13} strokeWidth={1.5} /> {t('live_attendees')}
                   </span>
                   <button
                     onClick={() => loadSessionDetail(selected.id)}
                     disabled={detailLoading}
                     className="flex items-center gap-1.5 text-[11px] text-[#6B7280] hover:text-[#374151] border border-[#CBD5E1] px-2 py-1 rounded-sm hover:bg-[#F3F4F6] transition-all"
                   >
-                    <RefreshCw size={11} className={detailLoading ? 'animate-spin' : ''} strokeWidth={1.5} /> Refresh
+                    <RefreshCw size={11} className={detailLoading ? 'animate-spin' : ''} strokeWidth={1.5} /> {t('refresh')}
                   </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
-                        {['Participant / 参加者', 'Role', 'Entry Time', 'Duration', 'Guard', 'Action'].map((h) => (
+                        {[t('name'), t('role'), t('entry_time'), t('duration'), t('guard'), t('actions')].map((h) => (
                           <th key={h} className="px-4 py-2.5 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -259,7 +261,7 @@ export default function Sessions() {
                     <tbody>
                       {(sessionDetail.attendees || []).filter(a => !a.exit_time).length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">No active attendees</td>
+                          <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">{t('no_active_attendees')}</td>
                         </tr>
                       ) : (
                         (sessionDetail.attendees || [])
@@ -288,7 +290,7 @@ export default function Sessions() {
                                   attendee.role === 'speaker' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                   attendee.role === 'chairperson' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                   'bg-gray-100 text-gray-600 border-gray-200'
-                                }`}>{attendee.role}</span>
+                                }`}>{t(attendee.role)}</span>
                               </td>
                               <td className="px-4 py-3 text-[11px] text-[#6B7280]">
                                 <div className="flex items-center gap-1">
@@ -299,14 +301,14 @@ export default function Sessions() {
                               <td className="px-4 py-3 text-[11px] text-[#6B7280]">
                                 <div className="flex items-center gap-1">
                                   <Clock size={10} strokeWidth={1.5} />
-                                  {Math.floor((attendee.seconds_in || 0) / 60)}m {(attendee.seconds_in || 0) % 60}s
+                                  {Math.floor((attendee.seconds_in || 0) / 60)}{t('minutes_short')} {(attendee.seconds_in || 0) % 60}{t('seconds_short')}
                                 </div>
                               </td>
                               <td className="px-4 py-3">
                                 {attendee.guard_active ? (
                                   <GuardBadge expiresAt={attendee.guard_expires_at} />
                                 ) : (
-                                  <span className="text-[10px] text-[#9CA3AF]">Cleared</span>
+                                  <span className="text-[10px] text-[#9CA3AF] font-medium">{t('cleared')}</span>
                                 )}
                               </td>
                               <td className="px-4 py-3">
@@ -318,7 +320,7 @@ export default function Sessions() {
                                       : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
                                   <LogOut size={10} strokeWidth={1.5} />
-                                  {attendee.guard_active ? 'Guard' : 'Check Out'}
+                                  {attendee.guard_active ? t('guard') : t('check_out')}
                                 </button>
                               </td>
                             </motion.tr>
