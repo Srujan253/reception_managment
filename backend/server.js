@@ -13,6 +13,7 @@ import participantRoutes from './routes/participants.js';
 import checkinRoutes from './routes/checkin.js';
 import dashboardRoutes from './routes/dashboard.js';
 import userRoutes from './routes/users.js';
+import emailRoutes from './routes/email.js';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/participants', participantRoutes);
 app.use('/api/checkin', checkinRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/email', emailRoutes);
 
 // DB Schema Init
 async function initSchema() {

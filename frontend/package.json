@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "Enterprise Event Check-in & Reception Management System - Frontend",
     "private": true,
+    "type": "module",
     "scripts": {
         "dev": "vite",
         "build": "vite build",

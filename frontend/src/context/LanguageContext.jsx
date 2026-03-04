@@ -227,6 +227,19 @@ export const translations = {
     importing: 'Importing...',
     export_csv: 'Export CSV',
     of: 'of',
+    // Event/Session form labels
+    start_date: 'Start Date',
+    end_date: 'End Date',
+    venue: 'Venue',
+    speakers: 'Speakers',
+    chairs: 'Chairs / Chairpersons',
+    phone: 'Phone',
+    unlimited: 'Unlimited',
+    status: 'Status',
+    upcoming: 'Upcoming',
+    cancelled: 'Cancelled',
+    edit_participant: 'Edit Participant',
+    click_name_to_expand: 'Click name to reveal email & QR',
   },
   ja: {
     // Navigation
@@ -452,6 +465,19 @@ export const translations = {
     importing: 'インポート中...',
     export_csv: 'CSVエクスポート',
     of: 'の',
+    // Event/Session form labels
+    start_date: '開始日',
+    end_date: '終了日',
+    venue: '会場',
+    speakers: '登壇者',
+    chairs: '座長 / 司会者',
+    phone: '電話番号',
+    unlimited: '無制限',
+    status: 'ステータス',
+    upcoming: '開催予定',
+    cancelled: 'キャンセル',
+    edit_participant: '参加者を編集',
+    click_name_to_expand: '名前をクリックしてメール・QRを表示',
   }
 };
 

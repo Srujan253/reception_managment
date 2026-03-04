@@ -63,16 +63,18 @@ router.get('/:id', authenticate, async (req, res) => {
 
 // POST /api/sessions — create session
 router.post('/', authenticate, requireManager, async (req, res) => {
-  const { sub_event_id, event_id, title, title_ja, speaker_name, room, start_time, end_time, capacity } = req.body;
+  const { sub_event_id, event_id, title, title_ja, speaker_name, speaker_names, chairperson_names, room, start_time, end_time, capacity } = req.body;
   if (!sub_event_id || !event_id || !title || !start_time || !end_time) {
     return res.status(400).json({ error: 'sub_event_id, event_id, title, start_time, end_time required' });
   }
+  // Null capacity = unlimited; empty string or missing = unlimited
+  const safeCapacity = (capacity !== '' && capacity != null) ? parseInt(capacity, 10) : null;
 
   try {
     const result = await pool.query(
-      `INSERT INTO sessions (sub_event_id, event_id, title, title_ja, speaker_name, room, start_time, end_time, capacity)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [sub_event_id, event_id, title, title_ja, speaker_name, room, start_time, end_time, capacity || 100]
+      `INSERT INTO sessions (sub_event_id, event_id, title, title_ja, speaker_name, speaker_names, chairperson_names, room, start_time, end_time, capacity)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [sub_event_id, event_id, title, title_ja, speaker_name || speaker_names || null, speaker_names || null, chairperson_names || null, room, start_time, end_time, safeCapacity]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -82,13 +84,14 @@ router.post('/', authenticate, requireManager, async (req, res) => {
 
 // PUT /api/sessions/:id
 router.put('/:id', authenticate, requireManager, async (req, res) => {
-  const { title, title_ja, speaker_name, room, start_time, end_time, capacity, status } = req.body;
+  const { title, title_ja, speaker_name, speaker_names, chairperson_names, room, start_time, end_time, capacity, status } = req.body;
+  const safeCapacity = (capacity !== '' && capacity != null) ? parseInt(capacity, 10) : null;
   try {
     const result = await pool.query(
-      `UPDATE sessions SET title=$1, title_ja=$2, speaker_name=$3, room=$4,
-       start_time=$5, end_time=$6, capacity=$7, status=$8, updated_at=NOW()
-       WHERE id=$9 RETURNING *`,
-      [title, title_ja, speaker_name, room, start_time, end_time, capacity, status, req.params.id]
+      `UPDATE sessions SET title=$1, title_ja=$2, speaker_name=$3, speaker_names=$4, chairperson_names=$5,
+       room=$6, start_time=$7, end_time=$8, capacity=$9, status=$10, updated_at=NOW()
+       WHERE id=$11 RETURNING *`,
+      [title, title_ja, speaker_name || speaker_names || null, speaker_names || null, chairperson_names || null, room, start_time, end_time, safeCapacity, status, req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Session not found' });
     res.json(result.rows[0]);

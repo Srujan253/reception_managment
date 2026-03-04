@@ -11,10 +11,10 @@ import { AnimatePresence } from 'framer-motion';
 
 const getNavItems = (t) => [
   { to: '/', icon: LayoutDashboard, label: t('dashboard'), end: true },
-  { to: '/scanner', icon: QrCode, label: t('scanner') },
+  { to: '/events', icon: CalendarDays, label: t('events'), managerOnly: true },
   { to: '/sessions', icon: MonitorPlay, label: t('sessions') },
   { to: '/participants', icon: Users, label: t('participants') },
-  { to: '/events', icon: CalendarDays, label: t('events'), managerOnly: true },
+  { to: '/scanner', icon: QrCode, label: t('scanner') },
   { to: '/admin', icon: ShieldCheck, label: t('admin'), adminOnly: true },
 ];
 

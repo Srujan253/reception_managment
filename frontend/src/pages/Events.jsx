@@ -8,9 +8,12 @@ import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import DatePicker from '../components/ui/DatePicker';
+import DateTimePicker from '../components/ui/DateTimePicker';
 
 function EventModal({ event, onClose, onSaved }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
   const isEdit = !!event?.id;
   const [form, setForm] = useState({
     name: event?.name || '',
@@ -59,8 +62,21 @@ function EventModal({ event, onClose, onSaved }) {
               className="w-full px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B] resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f(`${t('start_date')} *`, 'start_date', 'date')}
-            {f(`${t('end_date')} *`, 'end_date', 'date')}
+            <DatePicker
+              label={`${t('start_date')} *`}
+              value={form.start_date}
+              onChange={(v) => setForm(f => ({ ...f, start_date: v }))}
+              placeholder={t('start_date')}
+              lang={lang}
+            />
+            <DatePicker
+              label={`${t('end_date')} *`}
+              value={form.end_date}
+              onChange={(v) => setForm(f => ({ ...f, end_date: v }))}
+              placeholder={t('end_date')}
+              minDate={form.start_date || undefined}
+              lang={lang}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             {f(t('venue'), 'venue')}
@@ -146,22 +162,51 @@ function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
 }
 
 function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const isEdit = !!session?.id;
+
+  // Convert UTC datetime string to local datetime-local input value
+  const toLocalDT = (dt) => {
+    if (!dt) return '';
+    const d = new Date(dt);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  };
+
   const [form, setForm] = useState({
     title: session?.title || '',
-    speaker_name: session?.speaker_name || '', room: session?.room || '',
-    start_time: session?.start_time ? new Date(session.start_time).toISOString().slice(0, 16) : '',
-    end_time: session?.end_time ? new Date(session.end_time).toISOString().slice(0, 16) : '',
-    capacity: session?.capacity || 100,
+    speaker_names: session?.speaker_names || session?.speaker_name || '',
+    chairperson_names: session?.chairperson_names || '',
+    room: session?.room || '',
+    start_time: session?.start_time ? toLocalDT(session.start_time) : '',
+    end_time: session?.end_time ? toLocalDT(session.end_time) : '',
+    capacity: session?.capacity != null ? session.capacity : '',
   });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate: end time must be after start time
+    if (form.start_time && form.end_time) {
+      if (new Date(form.end_time) <= new Date(form.start_time)) {
+        toast.error(lang === 'ja' ? '終了時間は開始時間より後にしてください' : 'End time must be after start time');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      const payload = { ...form, event_id: eventId, sub_event_id: subEventId };
+      // Convert local datetime-local strings (YYYY-MM-DDTHH:mm) to UTC ISO.
+      // new Date("YYYY-MM-DDTHH:mm") in browsers = local time → .toISOString() gives UTC.
+      // This prevents PostgreSQL TIMESTAMPTZ from interpreting the value as UTC server time.
+      const toUTC = (localDT) => (localDT ? new Date(localDT).toISOString() : '');
+      const payload = {
+        ...form,
+        start_time: toUTC(form.start_time),
+        end_time:   toUTC(form.end_time),
+        event_id:     eventId,
+        sub_event_id: subEventId,
+      };
       if (isEdit) await api.put(`/sessions/${session.id}`, payload);
       else await api.post('/sessions', payload);
       toast.success(isEdit ? t('session_updated') : t('session_created'));
@@ -174,33 +219,59 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
     }
   };
 
-  const f = (label, key, type = 'text') => (
+  const f = (label, key, type = 'text', placeholder = '') => (
     <div>
       <label className="block text-[11px] font-medium text-[#374151] mb-1">{label}</label>
-      <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+      <input type={type} value={form[key]} placeholder={placeholder}
+        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
         className="w-full px-2.5 py-2 text-[12px] border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus:outline-none focus:border-[#64748B]" />
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+        className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-xl">
         <h3 className="text-[14px] font-semibold text-[#111827] mb-4">{isEdit ? t('edit_session') : t('new_session')}</h3>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-1 gap-3">
             {f(`${t('session_title')} *`, 'title')}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f(t('speaker_name'), 'speaker_name')}
+            {f(t('speakers'), 'speaker_names', 'text', 'e.g. Tanaka, Suzuki')}
+            {f(t('chairs'), 'chairperson_names', 'text', 'e.g. Yamamoto')}
+          </div>
+          <div className="grid grid-cols-1 gap-3">
             {f(t('room_location'), 'room')}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f(`${t('start_time')} *`, 'start_time', 'datetime-local')}
-            {f(`${t('end_time')} *`, 'end_time', 'datetime-local')}
+            <DateTimePicker
+              label={`${t('start_time')} *`}
+              value={form.start_time}
+              onChange={(v) => setForm(f => ({ ...f, start_time: v }))}
+              placeholder={t('start_time')}
+              lang={lang}
+            />
+            <DateTimePicker
+              label={`${t('end_time')} *`}
+              value={form.end_time}
+              onChange={(v) => setForm(f => ({ ...f, end_time: v }))}
+              placeholder={t('end_time')}
+              minDateTime={form.start_time || undefined}
+              lang={lang}
+            />
           </div>
+
+          {/* Live warning when end ≤ start */}
+          {form.start_time && form.end_time && new Date(form.end_time) <= new Date(form.start_time) && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-[11px] text-red-600 font-medium">
+              <span>⚠</span>
+              <span>{lang === 'ja' ? '終了時間は開始時間より後にしてください' : 'End time must be after start time'}</span>
+            </div>
+          )}
+
           <div className="w-1/2 pr-1.5">
-            {f(t('capacity'), 'capacity', 'number')}
+            {f(t('capacity'), 'capacity', 'number', t('unlimited') || 'Unlimited')}
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2 text-[12px] border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-600">{t('cancel')}</button>
@@ -213,6 +284,7 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
     </div>
   );
 }
+
 
 function EventRow({ event, onRefresh }) {
   const { t, lang } = useLanguage();

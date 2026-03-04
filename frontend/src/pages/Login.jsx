@@ -179,18 +179,8 @@ export default function Login() {
             </motion.button>
           </form>
 
-          {/* Attendee Registration Link */}
-          <div className="mt-8 text-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 bg-emerald-500 h-full"></div>
-            <p className="text-[14px] text-slate-600 mb-3 font-medium">{t('dont_have_qr')}</p>
-            <button
-              type="button"
-              onClick={() => navigate('/register')}
-              className="w-full sm:w-auto px-6 py-2.5 text-[14px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-xl border border-emerald-200"
-            >
-              {t('get_digital_ticket')}
-            </button>
-          </div>
+
+
 
           {/* Demo accounts */}
           <div className="mt-12 pt-8 border-t border-slate-200">

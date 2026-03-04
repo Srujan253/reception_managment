@@ -75,11 +75,13 @@ router.post('/', authenticate, requireManager, async (req, res) => {
 // PUT /api/events/:id — update event
 router.put('/:id', authenticate, requireManager, async (req, res) => {
   const { name, name_ja, description, start_date, end_date, venue, capacity, status } = req.body;
+  // Coerce capacity to integer — empty string from frontend would cause a Postgres type error
+  const safeCapacity = (capacity !== '' && capacity != null) ? parseInt(capacity, 10) : 0;
   try {
     const result = await pool.query(
       `UPDATE events SET name=$1, name_ja=$2, description=$3, start_date=$4, end_date=$5,
        venue=$6, capacity=$7, status=$8, updated_at=NOW() WHERE id=$9 RETURNING *`,
-      [name, name_ja, description, start_date, end_date, venue, capacity, status, req.params.id]
+      [name, name_ja, description, start_date, end_date, venue, safeCapacity, status, req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Event not found' });
     res.json(result.rows[0]);

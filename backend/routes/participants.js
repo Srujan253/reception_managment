@@ -91,15 +91,15 @@ router.get('/qr/:code', authenticate, async (req, res) => {
 
 // POST /api/participants — create
 router.post('/', authenticate, requireManager, async (req, res) => {
-  const { event_id, name, name_ja, email, organization, role, ticket_number, notes } = req.body;
+  const { event_id, name, name_ja, email, phone, organization, role, ticket_number, notes } = req.body;
   if (!event_id || !name) return res.status(400).json({ error: 'event_id and name required' });
 
   try {
     const qr_code = `EVT-${uuidv4().split('-')[0].toUpperCase()}-${Date.now()}`;
     const result = await pool.query(
-      `INSERT INTO participants (event_id, name, name_ja, email, organization, role, qr_code, ticket_number, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [event_id, name, name_ja, email, organization, role || 'participant', qr_code, ticket_number, notes]
+      `INSERT INTO participants (event_id, name, name_ja, email, phone, organization, role, qr_code, ticket_number, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [event_id, name, name_ja, email, phone || null, organization, role || 'participant', qr_code, ticket_number, notes]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -109,12 +109,12 @@ router.post('/', authenticate, requireManager, async (req, res) => {
 
 // PUT /api/participants/:id
 router.put('/:id', authenticate, requireManager, async (req, res) => {
-  const { name, name_ja, email, organization, role, ticket_number, notes } = req.body;
+  const { name, name_ja, email, phone, organization, role, ticket_number, notes } = req.body;
   try {
     const result = await pool.query(
-      `UPDATE participants SET name=$1, name_ja=$2, email=$3, organization=$4, role=$5,
-       ticket_number=$6, notes=$7, updated_at=NOW() WHERE id=$8 RETURNING *`,
-      [name, name_ja, email, organization, role, ticket_number, notes, req.params.id]
+      `UPDATE participants SET name=$1, name_ja=$2, email=$3, phone=$4, organization=$5, role=$6,
+       ticket_number=$7, notes=$8, updated_at=NOW() WHERE id=$9 RETURNING *`,
+      [name, name_ja, email, phone || null, organization, role, ticket_number, notes, req.params.id]
     );
     if (!result.rows.length) return res.status(404).json({ error: 'Participant not found' });
     res.json(result.rows[0]);
@@ -185,35 +185,70 @@ router.post('/import', authenticate, requireManager, upload.single('file'), asyn
   }
 });
 
-// GET /api/participants/export/:event_id — CSV export with UTF-8 BOM
+// GET /api/participants/export — flexible CSV export by query params
+// Supports: ?event_id=&role=&search=
+router.get('/export', authenticate, async (req, res) => {
+  const { event_id, role, search } = req.query;
+  try {
+    let query = 'SELECT p.*, e.name as event_name FROM participants p LEFT JOIN events e ON e.id = p.event_id WHERE 1=1';
+    const params = [];
+    if (event_id) { params.push(event_id); query += ` AND p.event_id = $${params.length}`; }
+    if (role && role !== 'all') { params.push(role); query += ` AND p.role = $${params.length}`; }
+    if (search) { params.push(`%${search}%`); query += ` AND (p.name ILIKE $${params.length} OR p.email ILIKE $${params.length})`; }
+    query += ' ORDER BY p.created_at';
+
+    const result = await pool.query(query, params);
+
+    const header = 'ID,Name / 名前,Email / メール,Phone / 電話番号,Organization / 組織,Role / 役割,QR Code / QRコード,Ticket / チケット,Event / イベント,Event Arrival / イベント受付,Speaker Verify / スピーカー確認\n';
+    const rows = result.rows.map(p => [
+      p.id,
+      `"${(p.name || '').replace(/"/g, '""')}"`,
+      `"${(p.email || '').replace(/"/g, '""')}"`,
+      `"${(p.phone || '').replace(/"/g, '""')}"`,
+      `"${(p.organization || '').replace(/"/g, '""')}"`,
+      p.role,
+      p.qr_code,
+      `"${(p.ticket_number || '').replace(/"/g, '""')}"`,
+      `"${(p.event_name || '').replace(/"/g, '""')}"`,
+      p.checkin_at_1 ? new Date(p.checkin_at_1).toISOString() : '',
+      p.checkin_at_3 ? new Date(p.checkin_at_3).toISOString() : '',
+    ].join(',')).join('\n');
+
+    const csv = '\uFEFF' + header + rows;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="participants_export.csv"`);
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/participants/export/:event_id — legacy export by event (kept for backward compat)
 router.get('/export/:event_id', authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM participants WHERE event_id = $1 ORDER BY created_at',
+      'SELECT p.*, e.name as event_name FROM participants p LEFT JOIN events e ON e.id = p.event_id WHERE p.event_id = $1 ORDER BY p.created_at',
       [req.params.event_id]
     );
 
-    // CSV headers (English / Japanese)
-    const header = 'ID,Name / 名前,Name (JP) / 名前（日本語）,Email / メール,Organization / 組織,Role / 役割,QR Code / QRコード,Ticket / チケット,Stage1 Check-in,Stage2 Check-in,Stage3 Check-in,Checked In / チェックイン済み\n';
+    const header = 'ID,Name / 名前,Email / メール,Phone / 電話番号,Organization / 組織,Role / 役割,QR Code / QRコード,Ticket / チケット,Event Arrival / イベント受付,Speaker Verify / スピーカー確認,Checked In / チェックイン済み\n';
     const rows = result.rows.map(p =>
       [
         p.id,
-        `"${p.name || ''}"`,
-        `"${p.name_ja || ''}"`,
-        `"${p.email || ''}"`,
-        `"${p.organization || ''}"`,
+        `"${(p.name || '').replace(/"/g, '""')}"`,
+        `"${(p.email || '').replace(/"/g, '""')}"`,
+        `"${(p.phone || '').replace(/"/g, '""')}"`,
+        `"${(p.organization || '').replace(/"/g, '""')}"`,
         p.role,
         p.qr_code,
-        `"${p.ticket_number || ''}"`,
+        `"${(p.ticket_number || '').replace(/"/g, '""')}"`,
         p.checkin_at_1 ? new Date(p.checkin_at_1).toISOString() : '',
-        p.checkin_at_2 ? new Date(p.checkin_at_2).toISOString() : '',
         p.checkin_at_3 ? new Date(p.checkin_at_3).toISOString() : '',
         p.is_checked_in ? 'Yes / はい' : 'No / いいえ',
       ].join(',')
     ).join('\n');
 
-    const csv = '\uFEFF' + header + rows; // UTF-8 BOM
-
+    const csv = '\uFEFF' + header + rows;
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="participants_event_${req.params.event_id}.csv"`);
     res.send(csv);
@@ -221,5 +256,6 @@ router.get('/export/:event_id', authenticate, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 export default router;
