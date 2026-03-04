@@ -1,31 +1,21 @@
 import express from 'express';
-import nodemailer from 'nodemailer';
 import pool from '../db.js';
 import { authenticate, requireManager } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Configure the Nodemailer transporter for Gmail
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
-
 // POST /api/email/send-qr
-// Body: { participant_ids: [1, 2, 3] }
-// Sends each participant their QR code by email.
+// Body: { participant_ids: [1, 2, 3], lang: 'en' | 'ja' }
+// Sends each participant their QR code by email via Brevo REST API.
 router.post('/send-qr', authenticate, requireManager, async (req, res) => {
   const { participant_ids, lang = 'en' } = req.body;
   if (!Array.isArray(participant_ids) || participant_ids.length === 0) {
     return res.status(400).json({ error: 'participant_ids array required' });
   }
 
-  // Ensure Gmail credentials exist
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    return res.status(500).json({ error: 'Email configuration (GMAIL_USER, GMAIL_APP_PASSWORD) is missing on the server.' });
+  // Ensure Brevo credentials exist
+  if (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) {
+    return res.status(500).json({ error: 'Email configuration (BREVO_API_KEY, BREVO_SENDER_EMAIL) is missing on the server.' });
   }
 
   try {
@@ -60,21 +50,36 @@ router.post('/send-qr', authenticate, requireManager, async (req, res) => {
         const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(p.qr_code)}&margin=10`;
 
         try {
-          await transporter.sendMail({
-            from: `"Event Registration" <${process.env.GMAIL_USER}>`,
-            to:   p.email,
-            subject: lang === 'ja' ? `QRチケット — ${p.event_name || 'イベント'}` : `Your QR Ticket — ${p.event_name || 'Event'}`,
-            html: buildEmailHtml(p, qrImageUrl, lang),
+          const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'api-key': process.env.BREVO_API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              sender: { name: 'Event HQ', email: process.env.BREVO_SENDER_EMAIL },
+              to: [{ email: p.email, name: p.name }],
+              subject: lang === 'ja' ? `QRチケット — ${p.event_name || 'イベント'}` : `Your QR Ticket — ${p.event_name || 'Event'}`,
+              htmlContent: buildEmailHtml(p, qrImageUrl, lang)
+            })
           });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Brevo API Error: ${response.status} ${errorText}`);
+          }
+          
           sent.push(p.name);
         } catch (err) {
+          console.error("Brevo Error:", err.message);
           failed.push({ name: p.name, error: err.message });
         }
       })
     );
 
     res.json({
-      message: `QR emails sent successfully.`,
+      message: `QR emails processed.`,
       sent_count:    sent.length,
       failed_count:  failed.length,
       skipped_count: skipped.length,
