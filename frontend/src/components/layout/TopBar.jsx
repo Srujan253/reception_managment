@@ -38,29 +38,29 @@ export default function TopBar({ onMenuClick }) {
     <header className="h-14 border-b border-slate-200 bg-white flex items-center px-4 md:px-6 gap-3 md:gap-4 flex-shrink-0">
       <button 
         onClick={onMenuClick}
-        className="md:hidden p-2 -ml-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+        className="md:hidden p-2 -ml-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
       >
         <Menu size={20} />
       </button>
       
       <div className="flex-1 truncate">
-        <h1 className="text-[14px] md:text-[15px] font-semibold text-slate-900 truncate">{title}</h1>
+        <h1 className="text-[16px] md:text-[17px] font-bold text-slate-900 truncate">{title}</h1>
       </div>
 
       {/* Language Toggle */}
       <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
         <button
           onClick={() => setLang('en')}
-          className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
-            lang === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+          className={`px-2 py-1 text-[11px] font-bold rounded-md transition-all ${
+            lang === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           EN
         </button>
         <button
           onClick={() => setLang('ja')}
-          className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
-            lang === 'ja' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+          className={`px-2 py-1 text-[11px] font-bold rounded-md transition-all ${
+            lang === 'ja' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           JP
@@ -69,26 +69,26 @@ export default function TopBar({ onMenuClick }) {
 
       {/* Search - hidden on mobile */}
       <div className="relative hidden lg:block">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" strokeWidth={1.5} />
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" strokeWidth={1.5} />
         <input
           type="text"
           placeholder={t('search_participants')}
-          className="pl-8 pr-3 py-1.5 text-[12px] border border-slate-200 bg-slate-50 rounded-lg w-56 focus:outline-none focus:border-slate-400 transition-colors"
+          className="pl-8 pr-3 py-1.5 text-[13px] border border-slate-200 bg-slate-50 rounded-lg w-56 focus:outline-none focus:border-slate-400 transition-colors text-slate-800"
         />
       </div>
 
       {/* Notification */}
       <button className="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-        <Bell size={14} strokeWidth={1.5} className="text-slate-500" />
+        <Bell size={15} strokeWidth={1.5} className="text-slate-600" />
       </button>
 
       {/* Role badge */}
-      <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full tracking-widest ${roleBadge.bg} shadow-sm uppercase`}>
+      <div className={`px-2.5 py-1 text-[11px] font-bold rounded-full tracking-widest ${roleBadge.bg} shadow-sm uppercase`}>
         {roleLabels[user?.role] || 'USER'}
       </div>
 
       {/* Avatar */}
-      <div className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
+      <div className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center text-white text-[13px] font-bold shadow-sm">
         {user?.name?.charAt(0)?.toUpperCase() || 'U'}
       </div>
     </header>

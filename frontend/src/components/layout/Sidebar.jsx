@@ -51,8 +51,8 @@ export default function Sidebar({ isOpen, onClose }) {
             <Zap size={14} className="text-white" strokeWidth={1.8} />
           </div>
           <div>
-            <div className="font-semibold text-[#111827] text-sm leading-none">EventHQ</div>
-            <div className="text-[10px] text-[#9CA3AF] mt-0.5">{t('enterprise')}</div>
+            <div className="font-bold text-[#0D1117] text-[14px] leading-none">EventHQ</div>
+            <div className="text-[11px] text-[#6B7280] mt-0.5">{t('enterprise')}</div>
           </div>
         </div>
         <button 
@@ -81,7 +81,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group
                 ${isActive
                   ? 'bg-slate-200 text-slate-900'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`
               }
             >
@@ -99,8 +99,8 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* User info */}
       <div className="px-3 py-4 border-t border-slate-200">
         <div className="mb-3 px-3">
-          <div className="text-[12px] font-medium text-[#111827] truncate">{user?.name}</div>
-          <div className="text-[11px] text-[#9CA3AF] truncate">{user?.email}</div>
+          <div className="text-[13px] font-semibold text-[#0D1117] truncate">{user?.name}</div>
+          <div className="text-[12px] text-[#6B7280] truncate">{user?.email}</div>
           <span className={`mt-1 inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide border rounded-sm ${roleBadgeColor}`}>
             {roleLabels[user?.role] || 'USER'}
           </span>

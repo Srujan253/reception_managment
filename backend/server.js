@@ -169,6 +169,9 @@ async function initSchema() {
       ).catch(() => {});
     }
 
+    // Migrations — add new columns safely
+    await pool.query(`ALTER TABLE participants ADD COLUMN IF NOT EXISTS name_kana VARCHAR(255)`);
+
     console.log('✅ Database schema initialized');
     console.log('📋 Demo: admin@eventhq.com/admin123 | manager@eventhq.com/manager123 | staff@eventhq.com/staff123');
   } catch (err) {

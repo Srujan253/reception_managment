@@ -99,9 +99,23 @@ export default function Sessions() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [guardWarning, setGuardWarning] = useState({ show: false, participantId: null, info: null });
 
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState('');
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
   useEffect(() => {
     loadSessions();
-  }, []);
+  }, [selectedEvent]);
+
+  const loadEvents = async () => {
+    try {
+      const res = await api.get('/events');
+      setEvents(res.data);
+    } catch (err) { }
+  };
 
   useEffect(() => {
     if (selected) loadSessionDetail(selected.id);
@@ -115,10 +129,17 @@ export default function Sessions() {
   }, [selected]);
 
   const loadSessions = async () => {
+    setLoading(true);
     try {
-      const res = await api.get('/sessions');
+      const res = await api.get('/sessions', { params: { event_id: selectedEvent || undefined } });
       setSessions(res.data);
-      if (res.data.length > 0 && !selected) setSelected(res.data[0]);
+      if (res.data.length > 0) {
+        if (!selected || !res.data.find(s => s.id === selected.id)) {
+          setSelected(res.data[0]);
+        }
+      } else {
+        setSelected(null);
+      }
     } catch (err) {
       toast.error(t('failed_load_sessions'));
     } finally {
@@ -173,7 +194,19 @@ export default function Sessions() {
         <div className="col-span-2">
           <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
             <div className="px-4 py-3 border-b border-[#F3F4F6]">
-              <span className="text-[12px] font-semibold text-[#374151]">{t('sessions')} ({sessions.length})</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12px] font-semibold text-[#374151]">{t('sessions')} ({sessions.length})</span>
+              </div>
+              <select 
+                value={selectedEvent} 
+                onChange={e => setSelectedEvent(e.target.value)}
+                className="w-full text-[12px] border border-[#CBD5E1] rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+              >
+                <option value="">{t('all_events') || 'All Events'}</option>
+                {events.map(e => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+              </select>
             </div>
             <div className="divide-y divide-[#F3F4F6] max-h-[600px] overflow-y-auto">
               {sessions.length === 0 ? (
@@ -222,13 +255,13 @@ export default function Sessions() {
                   </div>
                   <div className="text-right">
                     <div className="text-[22px] font-bold text-[#111827]">
-                      {sessionDetail.attendees?.filter(a => !a.exit_time).length || 0}
+                      {sessionDetail.attendees?.length || 0}
                     </div>
                     <div className="text-[11px] text-[#9CA3AF]">/ {sessionDetail.capacity} {t('capacity')}</div>
                     <div className="w-24 h-1.5 bg-[#F3F4F6] border border-[#CBD5E1] rounded-sm overflow-hidden mt-2">
                       <div
                         className="h-full bg-[#111827]"
-                        style={{ width: `${Math.min(100, ((sessionDetail.attendees?.filter(a => !a.exit_time).length || 0) / sessionDetail.capacity) * 100)}%` }}
+                        style={{ width: `${Math.min(100, ((sessionDetail.attendees?.length || 0) / sessionDetail.capacity) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -239,7 +272,7 @@ export default function Sessions() {
               <div className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
                 <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
                   <span className="text-[12px] font-semibold text-[#374151] flex items-center gap-2">
-                    <Users size={13} strokeWidth={1.5} /> {t('live_attendees')}
+                    <Users size={13} strokeWidth={1.5} /> {t('attendees')}
                   </span>
                   <button
                     onClick={() => loadSessionDetail(selected.id)}
@@ -253,19 +286,18 @@ export default function Sessions() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
-                        {[t('name'), t('role'), t('entry_time'), t('duration'), t('guard'), t('actions')].map((h) => (
+                        {[t('name'), t('role'), t('status') || 'Status', t('entry_time'), t('duration'), t('guard'), t('actions')].map((h) => (
                           <th key={h} className="px-4 py-2.5 text-left text-[10px] font-semibold text-[#6B7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {(sessionDetail.attendees || []).filter(a => !a.exit_time).length === 0 ? (
+                      {(sessionDetail.attendees || []).length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">{t('no_active_attendees')}</td>
+                          <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-[#9CA3AF]">{t('no_active_attendees')}</td>
                         </tr>
                       ) : (
                         (sessionDetail.attendees || [])
-                          .filter(a => !a.exit_time)
                           .map((attendee, i) => (
                             <motion.tr
                               key={attendee.id}
@@ -292,6 +324,13 @@ export default function Sessions() {
                                   'bg-gray-100 text-gray-600 border-gray-200'
                                 }`}>{t(attendee.role)}</span>
                               </td>
+                              <td className="px-4 py-3">
+                                {attendee.exit_time ? (
+                                  <span className="badge bg-slate-100 text-slate-600 border-slate-200 text-[9px]">{t('exited') || 'Exited'}</span>
+                                ) : (
+                                  <span className="badge bg-green-50 text-green-700 border-green-200 text-[9px]">{t('in_session') || 'In Session'}</span>
+                                )}
+                              </td>
                               <td className="px-4 py-3 text-[11px] text-[#6B7280]">
                                 <div className="flex items-center gap-1">
                                   <LogIn size={10} strokeWidth={1.5} className="text-green-500" />
@@ -301,7 +340,11 @@ export default function Sessions() {
                               <td className="px-4 py-3 text-[11px] text-[#6B7280]">
                                 <div className="flex items-center gap-1">
                                   <Clock size={10} strokeWidth={1.5} />
-                                  {Math.floor((attendee.seconds_in || 0) / 60)}{t('minutes_short')} {(attendee.seconds_in || 0) % 60}{t('seconds_short')}
+                                  {attendee.exit_time ? (
+                                    <span>{Math.floor((attendee.duration_seconds || 0) / 60)}m {(attendee.duration_seconds || 0) % 60}s</span>
+                                  ) : (
+                                    <span>{Math.floor((attendee.seconds_in || 0) / 60)}m {(attendee.seconds_in || 0) % 60}s</span>
+                                  )}
                                 </div>
                               </td>
                               <td className="px-4 py-3">
@@ -312,16 +355,20 @@ export default function Sessions() {
                                 )}
                               </td>
                               <td className="px-4 py-3">
-                                <button
-                                  onClick={() => handleCheckout(attendee.participant_id)}
-                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] rounded-lg shadow-sm border font-medium transition-all
-                                    ${attendee.guard_active
-                                      ? 'border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100'
-                                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                                >
-                                  <LogOut size={10} strokeWidth={1.5} />
-                                  {attendee.guard_active ? t('guard') : t('check_out')}
-                                </button>
+                                {attendee.exit_time ? (
+                                  <span className="text-[10px] text-[#9CA3AF]">-</span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleCheckout(attendee.participant_id)}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] rounded-lg shadow-sm border font-medium transition-all
+                                      ${attendee.guard_active
+                                        ? 'border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100'
+                                        : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                                  >
+                                    <LogOut size={10} strokeWidth={1.5} />
+                                    {attendee.guard_active ? t('guard') : t('check_out')}
+                                  </button>
+                                )}
                               </td>
                             </motion.tr>
                           ))

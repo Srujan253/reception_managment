@@ -39,6 +39,7 @@ function ParticipantFormModal({ events, participant, onClose, onSaved }) {
   const [form, setForm] = useState({
     event_id:      participant?.event_id || events[0]?.id || '',
     name:          participant?.name || '',
+    name_kana:     participant?.name_kana || '',
     email:         participant?.email || '',
     phone:         participant?.phone || '',
     organization:  participant?.organization || '',
@@ -91,6 +92,7 @@ function ParticipantFormModal({ events, participant, onClose, onSaved }) {
             events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)
           )}
           {field(`${t('name')} *`, 'name')}
+          {field(t('furigana') || 'フリガナ (Furigana)', 'name_kana')}
           <div className="grid grid-cols-2 gap-3">
             {field(t('email'), 'email', 'email')}
             {field(t('phone'), 'phone', 'tel')}
@@ -116,8 +118,44 @@ function ParticipantFormModal({ events, participant, onClose, onSaved }) {
   );
 }
 
+/* ─── Show QR Modal ─── */
+function QRCodeModal({ participant, onClose, lang }) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(participant.qr_code)}`;
+  
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(participant.qr_code);
+    toast.success(lang === 'ja' ? 'リンクをコピーしました' : 'Link copied');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-6 shadow-xl flex flex-col items-center">
+        <h3 className="text-[16px] font-semibold text-[#111827] mb-1">{participant.name}</h3>
+        <p className="text-[12px] text-[#6B7280] mb-5">{participant.organization || participant.role}</p>
+
+        <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm mb-6">
+          <img src={qrUrl} alt="QR Code" className="w-48 h-48" />
+        </div>
+
+        <div className="flex gap-3 w-full">
+          <button onClick={handleCopyLink}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-all font-medium text-slate-700">
+            <ExternalLink size={14} /> {lang === 'ja' ? 'リンクをコピー' : 'Copy Link'}
+          </button>
+          <button onClick={() => downloadQR(participant.qr_code, participant.name)}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-all font-medium">
+            <Download size={14} /> {lang === 'ja' ? 'ダウンロード' : 'Download'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 /* ─── Participant row with expandable detail + QR download ─── */
-function ParticipantRow({ p, lang, t, isManager, checked, onToggle, onDelete, onEdit }) {
+function ParticipantRow({ p, lang, t, isManager, checked, onToggle, onDelete, onEdit, onShowQR }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -141,11 +179,12 @@ function ParticipantRow({ p, lang, t, isManager, checked, onToggle, onDelete, on
               {p.name?.charAt(0)?.toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="text-[12px] font-medium text-[#374151] group-hover:text-[#111827] transition-colors flex items-center gap-1">
+              <div className="text-[13px] font-semibold text-[#0D1117] group-hover:text-black transition-colors flex items-center gap-1">
                 <span className="truncate">{p.name}</span>
                 <ChevronDown size={10} className={`text-[#9CA3AF] transition-transform shrink-0 ${expanded ? 'rotate-180' : ''}`} />
               </div>
-              {p.organization && <div className="text-[10px] text-[#9CA3AF] truncate">{p.organization}</div>}
+              {p.organization && <div className="text-[11px] text-[#6B7280] truncate">{p.organization}</div>}
+              {p.name_kana && <div className="text-[10px] text-[#9CA3AF] truncate">{p.name_kana}</div>}
             </div>
           </button>
         </td>
@@ -181,24 +220,24 @@ function ParticipantRow({ p, lang, t, isManager, checked, onToggle, onDelete, on
             {/* QR download — always visible */}
             {p.qr_code && (
               <button
-                onClick={() => downloadQR(p.qr_code, p.name)}
-                className="p-1.5 text-[#CBD5E1] hover:text-indigo-500 hover:bg-indigo-50 rounded-sm transition-all border border-transparent hover:border-indigo-200"
-                title={lang === 'ja' ? 'QRコードをダウンロード' : 'Download QR Code'}
+                onClick={() => onShowQR(p)}
+                className="p-1.5 text-black hover:text-white hover:bg-black rounded-md shadow-sm transition-all border border-transparent hover:border-black"
+                title={lang === 'ja' ? 'QRコードを表示' : 'Show QR Code'}
               >
-                <QrCode size={12} strokeWidth={1.5} />
+                <QrCode size={14} strokeWidth={2} />
               </button>
             )}
             {isManager && (
               <>
                 <button onClick={() => onEdit(p)}
-                  className="p-1.5 text-[#CBD5E1] hover:text-blue-500 hover:bg-blue-50 rounded-sm transition-all border border-transparent hover:border-blue-200"
+                  className="p-1.5 text-black hover:text-white hover:bg-black rounded-md shadow-sm transition-all border border-transparent hover:border-black"
                   title={t('edit_participant')}>
-                  <Edit2 size={12} strokeWidth={1.5} />
+                  <Edit2 size={14} strokeWidth={2} />
                 </button>
                 <button onClick={() => onDelete(p.id)}
-                  className="p-1.5 text-[#CBD5E1] hover:text-red-500 hover:bg-red-50 rounded-sm transition-all border border-transparent hover:border-red-200"
+                  className="p-1.5 text-white bg-black hover:bg-red-600 rounded-md shadow-sm transition-all border border-transparent"
                   title={t('delete')}>
-                  <Trash2 size={12} strokeWidth={1.5} />
+                  <Trash2 size={14} strokeWidth={2} />
                 </button>
               </>
             )}
@@ -218,6 +257,13 @@ function ParticipantRow({ p, lang, t, isManager, checked, onToggle, onDelete, on
           >
             <td colSpan={7} className="px-6 py-3">
               <div className="flex flex-wrap items-center gap-5">
+                {/* Furigana */}
+                {p.name_kana && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-semibold text-slate-400">{lang === 'ja' ? 'フリガナ:' : 'Furigana:'}</span>
+                    <span className="text-[11px] text-slate-600 font-mono">{p.name_kana}</span>
+                  </div>
+                )}
                 {/* Email */}
                 {p.email && (
                   <div className="flex items-center gap-1.5">
@@ -238,11 +284,11 @@ function ParticipantRow({ p, lang, t, isManager, checked, onToggle, onDelete, on
                     <QrCode size={11} className="text-slate-400 shrink-0" />
                     <span className="text-[10px] font-mono text-[#9CA3AF] select-all">{p.qr_code}</span>
                     <button
-                      onClick={() => downloadQR(p.qr_code, p.name)}
+                      onClick={() => onShowQR(p)}
                       className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full hover:bg-indigo-100 transition-all"
                     >
-                      <Download size={9} />
-                      {lang === 'ja' ? 'QRをDL' : 'DL QR'}
+                      <QrCode size={9} />
+                      {lang === 'ja' ? 'QRを表示' : 'Show QR'}
                     </button>
                   </div>
                 )}
@@ -270,6 +316,7 @@ export default function Participants() {
   const [filters, setFilters] = useState({ search: '', role: 'all', event_id: '', page: 1, limit: 50 });
   const [loading, setLoading] = useState(true);
   const [modal, setModal]     = useState(null);
+  const [qrModal, setQrModal] = useState(null);
   const [csvLoading, setCsvLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sendingQR, setSendingQR]     = useState(false);
@@ -330,17 +377,20 @@ export default function Participants() {
   const handleExport = async () => {
     try {
       // Build query params to match the current filter view
-      const params = new URLSearchParams();
-      if (filters.event_id) params.set('event_id', filters.event_id);
-      if (filters.role && filters.role !== 'all') params.set('role', filters.role);
-      if (filters.search) params.set('search', filters.search);
+      const params = { lang };
+      if (filters.event_id) params.event_id = filters.event_id;
+      if (filters.role && filters.role !== 'all') params.role = filters.role;
+      if (filters.search) params.search = filters.search;
 
+      const res = await api.get('/participants/export', { params, responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
       const a = document.createElement('a');
-      a.href = `/api/participants/export?${params.toString()}`;
+      a.href = url;
       a.download = 'participants_export.csv';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
       toast.success(t('success'));
     } catch { toast.error(t('error')); }
   };
@@ -515,6 +565,7 @@ export default function Participants() {
                     onToggle={() => toggleOne(p.id)}
                     onDelete={handleDelete}
                     onEdit={(participant) => setModal(participant)}
+                    onShowQR={setQrModal}
                   />
                 ))
               )}
@@ -559,6 +610,15 @@ export default function Participants() {
           participant={modal === 'add' ? null : modal}
           onClose={() => setModal(null)}
           onSaved={loadParticipants}
+        />
+      )}
+
+      {/* QR Code Modal */}
+      {qrModal && (
+        <QRCodeModal
+          participant={qrModal}
+          onClose={() => setQrModal(null)}
+          lang={lang}
         />
       )}
     </div>

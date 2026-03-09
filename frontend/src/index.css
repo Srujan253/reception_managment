@@ -8,9 +8,10 @@
   --bg-primary: #F9FAFB;
   --bg-secondary: #F3F4F6;
   --border: #CBD5E1;
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --accent: #64748B;
+  --text-primary: #0D1117;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --accent: #475569;
 }
 
 * {
@@ -21,6 +22,8 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   margin: 0;
   padding: 0;
@@ -80,6 +83,48 @@ body {
 /* Transitions */
 .transition-all {
   transition: all 0.15s ease;
+}
+
+/* ── Global text readability overrides ── */
+/* Darken all slate/gray Tailwind utility text classes site-wide */
+.text-slate-400,
+.text-slate-500 {
+  color: #64748B !important;
+}
+
+.text-slate-600 {
+  color: #475569 !important;
+}
+
+.text-\[\#9CA3AF\] {
+  color: #6B7280 !important;
+}
+
+.text-\[\#6B7280\] {
+  color: #4B5563 !important;
+}
+
+.text-\[\#374151\] {
+  color: #1F2937 !important;
+}
+
+/* Bump table header label sizes */
+thead th,
+th {
+  font-size: 12px !important;
+  color: #374151 !important;
+  font-weight: 700 !important;
+}
+
+/* Input placeholder darker */
+::placeholder {
+  color: #9CA3AF;
+  opacity: 1;
+}
+
+/* Badge text bump */
+.badge {
+  font-size: 12px;
 }
 
 /* QR Scanner Overrides (html5-qrcode) */

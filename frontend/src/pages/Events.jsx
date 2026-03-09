@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CalendarDays, Plus, ChevronRight, ChevronDown,
-  Trash2, Edit2, AlertCircle
+  Trash2, Edit2, AlertCircle, X
 } from 'lucide-react';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
@@ -161,6 +161,50 @@ function SubEventModal({ eventId, subEvent, onClose, onSaved }) {
   );
 }
 
+function TagInput({ label, value, onChange, placeholder, lang }) {
+  const [inputValue, setInputValue] = useState('');
+  
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const newTag = inputValue.trim();
+      if (newTag && !value.includes(newTag)) {
+        onChange([...value, newTag]);
+      }
+      setInputValue('');
+    }
+  };
+
+  const removeTag = (indexToRemove) => {
+    onChange(value.filter((_, index) => index !== indexToRemove));
+  };
+
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-[#374151] mb-1">{label}</label>
+      <div className="w-full px-2.5 py-1.5 min-h-[38px] flex flex-wrap items-center gap-1.5 border border-[#CBD5E1] rounded-sm bg-[#F9FAFB] focus-within:border-[#64748B]">
+        {value.map((tag, index) => (
+          <span key={index} className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-200 text-slate-700 text-[11px] rounded-sm">
+            {tag}
+            <button type="button" onClick={() => removeTag(index)} className="hover:text-red-500">
+              <X size={10} />
+            </button>
+          </span>
+        ))}
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={value.length === 0 ? placeholder : ''}
+          className="flex-1 min-w-[60px] bg-transparent text-[12px] focus:outline-none"
+        />
+      </div>
+      <p className="text-[9px] text-slate-400 mt-0.5">{lang === 'ja' ? 'Enterまたはカンマで追加' : 'Press Enter or comma to add'}</p>
+    </div>
+  );
+}
+
 function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
   const { t, lang } = useLanguage();
   const isEdit = !!session?.id;
@@ -172,10 +216,15 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   };
 
+  const parseTags = (str) => {
+    if (!str) return [];
+    return str.split(',').map(s => s.trim()).filter(Boolean);
+  };
+
   const [form, setForm] = useState({
     title: session?.title || '',
-    speaker_names: session?.speaker_names || session?.speaker_name || '',
-    chairperson_names: session?.chairperson_names || '',
+    speaker_names: parseTags(session?.speaker_names || session?.speaker_name || ''),
+    chairperson_names: parseTags(session?.chairperson_names || ''),
     room: session?.room || '',
     start_time: session?.start_time ? toLocalDT(session.start_time) : '',
     end_time: session?.end_time ? toLocalDT(session.end_time) : '',
@@ -202,6 +251,8 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
       const toUTC = (localDT) => (localDT ? new Date(localDT).toISOString() : '');
       const payload = {
         ...form,
+        speaker_names: form.speaker_names.join(', '),
+        chairperson_names: form.chairperson_names.join(', '),
         start_time: toUTC(form.start_time),
         end_time:   toUTC(form.end_time),
         event_id:     eventId,
@@ -238,8 +289,20 @@ function SessionModal({ eventId, subEventId, session, onClose, onSaved }) {
             {f(`${t('session_title')} *`, 'title')}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {f(t('speakers'), 'speaker_names', 'text', 'e.g. Tanaka, Suzuki')}
-            {f(t('chairs'), 'chairperson_names', 'text', 'e.g. Yamamoto')}
+            <TagInput 
+              label={t('speakers')} 
+              value={form.speaker_names} 
+              onChange={v => setForm(f => ({ ...f, speaker_names: v }))} 
+              placeholder="e.g. Tanaka" 
+              lang={lang}
+            />
+            <TagInput 
+              label={t('chairs')} 
+              value={form.chairperson_names} 
+              onChange={v => setForm(f => ({ ...f, chairperson_names: v }))} 
+              placeholder="e.g. Yamamoto" 
+              lang={lang}
+            />
           </div>
           <div className="grid grid-cols-1 gap-3">
             {f(t('room_location'), 'room')}
@@ -383,12 +446,12 @@ function EventRow({ event, onRefresh }) {
               </button>
               <div className="flex items-center gap-2">
                 <button onClick={() => setModal({ type: 'event', data: event })}
-                  className="p-1.5 border border-[#CBD5E1] rounded-sm hover:bg-[#F9FAFB] transition-all">
-                  <Edit2 size={12} strokeWidth={1.5} className="text-[#6B7280]" />
+                  className="p-1.5 text-black hover:text-white hover:bg-black rounded-md shadow-sm transition-all border border-transparent hover:border-black">
+                  <Edit2 size={12} strokeWidth={2} />
                 </button>
                 <button onClick={handleDeleteEvent}
-                  className="p-1.5 border border-[#CBD5E1] rounded-sm hover:bg-red-50 hover:border-red-200 transition-all">
-                  <Trash2 size={12} strokeWidth={1.5} className="text-[#9CA3AF] hover:text-red-500" />
+                  className="p-1.5 text-white bg-black hover:bg-red-600 rounded-md shadow-sm transition-all border border-transparent">
+                  <Trash2 size={12} strokeWidth={2} />
                 </button>
               </div>
             </div>
@@ -427,15 +490,15 @@ function EventRow({ event, onRefresh }) {
                               <Plus size={10} /> {t('session')}
                             </button>
                             <button onClick={() => setModal({ type: 'subevent', data: se })}
-                              className="p-1.5 border border-[#F3F4F6] rounded-sm hover:bg-white hover:border-[#CBD5E1] transition-all">
-                              <Edit2 size={11} strokeWidth={1.5} className="text-[#9CA3AF]" />
+                              className="p-1.5 text-black hover:text-white hover:bg-black rounded-md shadow-sm transition-all border border-transparent hover:border-black">
+                              <Edit2 size={12} strokeWidth={2} />
                             </button>
                             <button onClick={async () => {
                               if (!confirm(t('delete_confirm'))) return;
                               try { await api.delete(`/events/${event.id}/sub-events/${se.id}`); setSubEvents(s => s.filter(x => x.id !== se.id)); toast.success(t('success')); }
                               catch (err) { toast.error(err.response?.data?.error || t('error')); }
-                            }} className="p-1.5 border border-[#F3F4F6] rounded-sm hover:bg-red-50 hover:border-red-200 transition-all">
-                              <Trash2 size={11} strokeWidth={1.5} className="text-[#CBD5E1] hover:text-red-500" />
+                            }} className="p-1.5 text-white bg-black hover:bg-red-600 rounded-md shadow-sm transition-all border border-transparent">
+                              <Trash2 size={12} strokeWidth={2} />
                             </button>
                           </div>
                         )}
@@ -446,18 +509,36 @@ function EventRow({ event, onRefresh }) {
                         {sessionsBySubEvent[se.id]?.length > 0 ? (
                           sessionsBySubEvent[se.id].map(session => (
                             <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-white/50 border border-[#F3F4F6] rounded-lg">
-                              <div>
-                                <div className="text-[11px] font-medium text-[#374151]">{session.title}</div>
-                                <div className="text-[9px] text-[#9CA3AF]">
-                                  {session.speaker_name && `${session.speaker_name} · `}
-                                  {new Date(session.start_time).toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
+                              <div className="flex-1 mr-4">
+                                <div className="text-[12px] font-medium text-[#111827] mb-1">{session.title}</div>
+                                <div className="flex flex-col gap-0.5 text-[10px] text-[#6B7280]">
+                                  {(session.speaker_names || session.speaker_name) && (
+                                    <div className="flex items-start gap-1">
+                                      <span className="font-semibold whitespace-nowrap">{lang === 'ja' ? 'スピーカー:' : 'Speakers:'}</span>
+                                      <span className="text-[#4B5563]">{session.speaker_names || session.speaker_name}</span>
+                                    </div>
+                                  )}
+                                  {session.chairperson_names && (
+                                    <div className="flex items-start gap-1">
+                                      <span className="font-semibold whitespace-nowrap">{lang === 'ja' ? '座長:' : 'Chairs:'}</span>
+                                      <span className="text-[#4B5563]">{session.chairperson_names}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-start gap-1 mt-0.5">
+                                    <span className="font-semibold whitespace-nowrap">{lang === 'ja' ? '時間:' : 'Time:'}</span>
+                                    <span className="text-[#4B5563]">
+                                      {new Date(session.start_time).toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                      {' - '}
+                                      {new Date(session.end_time).toLocaleTimeString(lang === 'ja' ? 'ja-JP' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                               {isManager && (
                                 <div className="flex items-center gap-1">
                                   <button onClick={() => setModal({ type: 'session', data: session, subEventId: se.id })}
-                                    className="p-1 text-[#9CA3AF] hover:text-[#111827]">
-                                    <Edit2 size={10} />
+                                    className="p-1 text-black hover:text-white hover:bg-black rounded-md transition-all shadow-sm">
+                                    <Edit2 size={12} strokeWidth={2} />
                                   </button>
                                   <button onClick={async () => {
                                     if (!confirm(t('delete_confirm'))) return;
@@ -466,8 +547,8 @@ function EventRow({ event, onRefresh }) {
                                       toast.success(t('success'));
                                       refreshSubDetails();
                                     } catch { toast.error(t('error')); }
-                                  }} className="p-1 text-[#9CA3AF] hover:text-red-500">
-                                    <Trash2 size={10} />
+                                  }} className="p-1 text-white bg-black hover:bg-red-600 rounded-md transition-all shadow-sm">
+                                    <Trash2 size={12} strokeWidth={2} />
                                   </button>
                                 </div>
                               )}

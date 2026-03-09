@@ -18,6 +18,27 @@ const STAGES = [
 
 const ENDPOINTS = { stage1: '/checkin/stage1', stage2: '/checkin/stage2', stage3: '/checkin/stage3' };
 
+const playSuccessSound = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1046.5, ctx.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+    gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.08);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+  } catch (err) {
+    console.warn("Audio not supported or blocked", err);
+  }
+};
+
 // ── Status badge colours ───────────────────────────────────
 const STATUS_MAP = {
   SUCCESS:          { bg: 'bg-green-50  border-green-200',  icon: <CheckCircle2 size={18} className="text-green-600"  strokeWidth={1.5} />, text: 'text-green-700'  },
@@ -289,6 +310,9 @@ export default function Scanner() {
         code,
         sessionTitle: data.session_title || sessions.find(s => s.id === parseInt(selectedSession))?.title,
       }, ...prev.slice(0, 49)]);
+      if (['SUCCESS', 'ENTRY', 'EXIT'].includes(data.status)) {
+        playSuccessSound();
+      }
       toast.success(data.message);
     } catch (err) {
       const errData = err.response?.data || { status: 'ERROR', error: err.message };

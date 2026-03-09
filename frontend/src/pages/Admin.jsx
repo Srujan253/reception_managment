@@ -196,13 +196,13 @@ export default function Admin() {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     <button onClick={() => { setPwModal(u); setNewPassword(''); }}
-                      className="p-1.5 border border-[#CBD5E1] rounded-sm hover:bg-[#F3F4F6] transition-all" title={t('reset_password')}>
-                      <Key size={11} strokeWidth={1.5} className="text-[#6B7280]" />
+                      className="p-1.5 text-black hover:text-white hover:bg-black rounded-md shadow-sm transition-all border border-transparent hover:border-black" title={t('reset_password')}>
+                      <Key size={12} strokeWidth={2} />
                     </button>
                     {u.id !== user?.id && (
                       <button onClick={() => handleDelete(u)}
-                        className="p-1.5 border border-[#CBD5E1] rounded-sm hover:bg-red-50 hover:border-red-200 transition-all" title={t('delete_user')}>
-                        <Trash2 size={11} strokeWidth={1.5} className="text-[#9CA3AF] hover:text-red-500" />
+                        className="p-1.5 text-white bg-black hover:bg-red-600 rounded-md shadow-sm transition-all border border-transparent" title={t('delete_user')}>
+                        <Trash2 size={12} strokeWidth={2} />
                       </button>
                     )}
                   </div>

@@ -240,6 +240,7 @@ export const translations = {
     cancelled: 'Cancelled',
     edit_participant: 'Edit Participant',
     click_name_to_expand: 'Click name to reveal email & QR',
+    furigana: 'Furigana (Phonetic)',
   },
   ja: {
     // Navigation
@@ -478,6 +479,7 @@ export const translations = {
     cancelled: 'キャンセル',
     edit_participant: '参加者を編集',
     click_name_to_expand: '名前をクリックしてメール・QRを表示',
+    furigana: 'フリガナ',
   }
 };
 
